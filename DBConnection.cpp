@@ -12,7 +12,7 @@ DBConnection::DBConnection() {
 		connection = driver->connect("tcp://127.0.0.1:3306", "root", "");
 		//database address, username, password
 
-		connection->setSchema("hotel_room_res"); //database name
+		connection->setSchema("hrrs"); //database name
 		stmt = nullptr;
 		res = nullptr;
 	} catch (sql::SQLException& e) {
@@ -76,7 +76,6 @@ void DBConnection::QueryStatement() {
 }
 
 void DBConnection::QueryResult() {
-
 	try {
 		res = stmt->executeQuery();
 	} catch (sql::SQLException& e) {

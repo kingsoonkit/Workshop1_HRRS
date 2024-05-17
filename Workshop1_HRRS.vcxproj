@@ -76,10 +76,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>C:\Users\kitks\MyDevelopments\Prerequisites\mysql-connector-c++-8.3.0-winx64\include;C:\Users\kitks\MyDevelopments\Prerequisites\tabulate-master\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\Users\kitks\MyDevelopments\Prerequisites\mysql-connector-c++-8.3.0-winx64\lib64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>vs14/mysqlcppconn.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -108,10 +111,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>C:\Users\kitks\MyDevelopments\Prerequisites\mysql-connector-c++-8.3.0-winx64\include;C:\Users\kitks\MyDevelopments\Prerequisites\tabulate-master\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\Users\kitks\MyDevelopments\Prerequisites\mysql-connector-c++-8.3.0-winx64\lib64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>vs14/mysqlcppconn.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -136,20 +142,23 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DBConnection.cpp" />
-    <ClCompile Include="Function.cpp" />
     <ClCompile Include="Guest.cpp" />
-    <ClCompile Include="LoginRegistration.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Manager.cpp" />
     <ClCompile Include="Receptionist.cpp" />
+    <ClCompile Include="Staff.cpp" />
+    <ClCompile Include="Login.cpp" />
+    <ClCompile Include="THROWAWAY.cpp" />
+    <ClCompile Include="Util.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DBConnection.h" />
-    <ClInclude Include="Function.h" />
     <ClInclude Include="Guest.h" />
-    <ClInclude Include="LoginRegistration.h" />
     <ClInclude Include="Manager.h" />
     <ClInclude Include="Receptionist.h" />
+    <ClInclude Include="Staff.h" />
+    <ClInclude Include="Login.h" />
+    <ClInclude Include="Util.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

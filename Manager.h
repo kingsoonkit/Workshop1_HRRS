@@ -1,12 +1,12 @@
-#pragma once
-#include <string>
-class Manager {
-private:
-	std::string staffID;
-	std::string password;
+#ifndef MANAGER
+#define MANAGER
 
+#include "Staff.h"
+
+class Manager : Staff {
 public:
-	void renderMainMenu();
+	static void renderMainMenu();
 
 };
 
+#endif
