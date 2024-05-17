@@ -28,7 +28,7 @@ void Util::showLogHeading(const std::string& name, const std::string& id, const 
 
 
 void Util::showInvalidAction() {
-	std::cout << "|\t" << ANSI_COLOR_RED << "Invalid action" << ANSI_COLOR_RED;
+	std::cout << "|\t" << ANSI_COLOR_RED << "{ Invalid action }\n" << ANSI_COLOR_RED;
 }
 ///
 
