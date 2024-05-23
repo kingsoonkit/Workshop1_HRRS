@@ -33,6 +33,7 @@ public:
 	static void showLogHeading(const std::string& name, const std::string& userType);
 	static void showInvalidAction();
 	static void showPositiveMessage(std::string message);
+	static void showNegativeMessage(std::string message);
 
 	static std::string writeTodayDate(const bool addNewline, int tabCount);
 
@@ -42,14 +43,17 @@ public:
 	static std::string parsePhoneNumberInput();
 	static std::string parsePasswordInput(const bool& hide, const bool& isReg);
 	static std::string parseTextInput();
-	static std::string parseDateInput();
+	static std::string parseDateInput(std::string text, const bool& showInstruction, std::string date);
 
 	static std::string getCurrentDate();
 	static std::string hashText(const std::string& input);
 	static std::string truncateDecimal(std::string input);
 	static std::vector<std::string> split(const std::string& s, char delimiter);
 
+	static bool firstDateIsEarlier(const std::string& date1, const std::string& date2);
 	static bool isRoomNumberExist(const std::vector<std::string>& rooms, DBConnection& db);
+	static bool isRoomsAvailable(const std::vector<std::string>& rooms, DBConnection& db);
 	static bool updateRoomStatuses();
+	static bool updateBookingNetPrice(std::string bookingID);
 };
 

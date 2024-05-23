@@ -14,9 +14,9 @@ public:
 	static void displayRoomDashboard(DBConnection& db);
 
 private:
-	static void renderCI_Reservation(const std::vector<std::string>& roomNumber, DBConnection dbObj);
-	static void renderCI_WalkIn(const std::vector<std::string>&, DBConnection dbObj);
-	static void renderCO(const std::vector<std::string>& roomNumber, DBConnection dbObj);
+	static void renderCI_Reservation(const std::vector<std::string>& rooms, DBConnection dbObj);
+	static void renderCI_WalkIn(const std::vector<std::string>& rooms, DBConnection dbObj);
+	static void renderCO(const std::vector<std::string>& rooms, DBConnection dbObj);
 };
 
 #endif

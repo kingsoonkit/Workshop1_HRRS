@@ -57,7 +57,6 @@ void Receptionist::renderRegisterPrompt() {
 		Util::showPositiveMessage("Registration Complete!");
 		Util::showHorizontalLine("double");
 		Util::showRefreshCountdown();
-
 		break;
 	} while (true);
 }
@@ -116,67 +115,128 @@ void Receptionist::displayRoomDashboard(DBConnection& db) {
 }
 
 
-void Receptionist::renderCI_Reservation(const std::vector<std::string>& roomNumber, DBConnection dbObj) {
+void Receptionist::renderCI_Reservation(const std::vector<std::string>& rooms, DBConnection dbObj) {
 	std::cout << "|\tCheck-in for reservation\n";
 }
 
 
-void Receptionist::renderCI_WalkIn(const std::vector<std::string>& roomNumber, DBConnection dbObj) {
-
+void Receptionist::renderCI_WalkIn(const std::vector<std::string>& rooms, DBConnection dbObj) {
 	do {
-		std::cout << "| ----------------------------------------------------------------------------------------------------------------------\n";
+		system("cls");
+		Util::showHorizontalLine("double");
 		std::cout << "|\n";
-		std::cout << "|\tCheck-In / Check-Out -> Check-in (Walk-In)\n";
-		std::cout << "|\t-----------------------------------------\n";
+		std::cout << "|\t" << ANSI_COLOR_YELLOW << "Check-in / Check-out -> Check-in (Walk-In)\n" << ANSI_COLOR_RESET;
+		std::cout << "|\t------------------------------------------\n";
 		std::cout << "|\n";
-		std::cout << "|\tGuest’s Information\n";
+		std::cout << "|\n";
+		std::cout << "|\tChecking-in on: " << ANSI_COLOR_GOLD;
+		for (int i = 0; i < rooms.size(); i++) {
+			std::cout << rooms[i];
+			if (i != rooms.size() - 1) { 
+				std::cout << ", "; 
+			}
+		}
+		std::cout << ANSI_COLOR_RESET << "\n";
+		std::cout << "|\n";
+		std::cout << "|\tGuest Information\n";
 		std::cout << "|\t-------------------\n";
 		std::string tempArr[5];
 
 		tempArr[0] = Util::parseICNumberInput();
 		if (tempArr[0] == __EXIT_CODE__) { break; }
 
-		tempArr[1] = Util::parseNameInput();
-		if (tempArr[1] == __EXIT_CODE__) { break; }
+		if (Guest::isICNumberExist(tempArr[0])) {
+			std::cout << "|\t" << ANSI_COLOR_GREEN << "[ Existing Guest ]\n" << ANSI_COLOR_RESET;
+		}
+		else {
+			std::cout << "|\t" << ANSI_COLOR_GREEN << "[ New Guest ]" << ANSI_COLOR_RESET;
+			tempArr[1] = Util::parseNameInput();
+			if (tempArr[1] == __EXIT_CODE__) { break; }
 
-		tempArr[2] = Util::parsePhoneNumberInput();
-		if (tempArr[2] == __EXIT_CODE__) { break; }
-
+			tempArr[2] = Util::parsePhoneNumberInput();
+			if (tempArr[2] == __EXIT_CODE__) { break; }
+		}
+		std::cout << "|\n";
+		std::cout << "|\n";
 		std::cout << "|\tStay Duration\n";
-		tempArr[3] = Util::parseDateInput();
-		if (tempArr[3] == __EXIT_CODE__) { break; }
+		std::cout << "|\t-------------\n";
+		std::cout << "|\tStarting today: " << ANSI_COLOR_GOLD << "" << Util::getCurrentDate() << "\n" << ANSI_COLOR_RESET;
 
-		tempArr[4] = Util::parseDateInput();
+		tempArr[3] = Util::getCurrentDate();
+
+		tempArr[4] = Util::parseDateInput("Until", false, tempArr[3]);
 		if (tempArr[4] == __EXIT_CODE__) { break; }
 
+		try {
+			DBConnection db;
 
-		std::cout << "|\t-------------------\n";
+			// If Guest IC Number DOES NOT EXIST, insert it.
+			if (!Guest::isICNumberExist(tempArr[0])) {
+				db.prepareStatement("INSERT INTO Guest (ICNumber, Name, PhoneNo) VALUES (?,?,?);");
+				db.stmt->setString(1, tempArr[0]);
+				db.stmt->setString(2, tempArr[1]);
+				db.stmt->setString(3, tempArr[2]);
+				db.QueryStatement();
+			}
+
+			// 1. Add booking details
+			db.prepareStatement("INSERT INTO Booking (ICNumber, StaffUsername, BookingType) VALUES (?,?,?)");
+			db.stmt->setString(1, tempArr[0]);
+			db.stmt->setString(2, "frontdesk"); //getStaffUsername()
+			db.stmt->setString(3, "Walk-in");
+			db.QueryStatement();
+
+			// 2.1 Get the new ID from just now (based on ICNumber)
+			db.prepareStatement("SELECT bookingID FROM Booking WHERE ICNumber = ?");
+			db.stmt->setString(1, tempArr[0]);
+			db.QueryResult();
+			std::string bookingID;
+			while (db.res->next()) {
+				bookingID = db.res->getString("bookingID");
+			}
+
+			// 2.2 Insert the bookingline, must have bookingID and at least ONE RoomNumber
+			for (int i = 0; i < rooms.size(); i++) {
+				db.prepareStatement("INSERT INTO bookingline (RoomNumber, bookingID, StartDate, EndDate, BookingStatus)"
+									" VALUES (?,?,?,?,?);");
+				db.stmt->setString(1, rooms[i]);
+				db.stmt->setString(2, bookingID);
+				db.stmt->setString(3, tempArr[3]);
+				db.stmt->setString(4, tempArr[4]);
+				db.stmt->setString(5, "Checked-in");
+				db.QueryStatement();
+			}
+
+			Util::updateRoomStatuses();
+			Util::updateBookingNetPrice(bookingID);
+			// TODOD
 
 
+			// 3.
+			/*db.prepareStatement("INSERT INTO bookingline (RoomNumber, bookingID, StartDate, EndDate, BookingStatus) VALUES (?,?,?,?,?);");
+			db.stmt->setString(1, rooms[i]);
+			db.stmt->setString(2, bookingID);
+			db.stmt->setString(3, tempArr[3]);
+			db.stmt->setString(4, tempArr[4]);
+			db.stmt->setString(5, "Checked-in");
+			db.QueryStatement();*/
+
+
+		} catch (sql::SQLException& e) {
+			std::cerr << "|\tSQL Exception: " << e.what() << " (MySQL error code: " << e.getErrorCode() << ", SQLState: " << e.getSQLState() << ")" << std::endl;
+		}
+
+
+		Util::showPositiveMessage("Booking Confirmed");
+		Util::showHorizontalLine("double");
+		Util::showRefreshCountdown();
+		break;
 	} while (true);
 
-
-
-
-	DBConnection db;
-	std::string query;
-	if (Guest::isICNumberExist(tempArr[0])) {
-		query = "";
-	}
-	else {
-		query = "";
-	}
-
-	db.prepareStatement(query);
-
-
-	Util::showPositiveMessage("Booking Confirmed");
-	Util::showHorizontalLine("double");
-	Util::showRefreshCountdown();
 }
 
 
-void Receptionist::renderCO(const std::vector<std::string>& roomNumber, DBConnection dbObj) {
+void Receptionist::renderCO(const std::vector<std::string>& rooms, DBConnection dbObj) {
 	std::cout << "|\tCheck-out\n";
 }
 
@@ -189,15 +249,16 @@ void Receptionist::renderMenuOfCICO() {
 	displayRoomDashboard(db);
 	Util::showHorizontalLine("single");
 	std::cout << "|\n";
-	std::cout << "|\tCheck-In / Check-Out\n";
+	std::cout << "|\t" << ANSI_COLOR_YELLOW << "Check-In / Check-Out\n" << ANSI_COLOR_RESET;
 	std::cout << "|\t--------------------\n";
 	std::cout << "|\n";
 	std::cout << "|\tEnter a room number and a number to perform action:\n";
-	std::cout << "|\tExample: " << ANSI_COLOR_GOLD << "1-R005" << ANSI_COLOR_RESET << " or " << ANSI_COLOR_GOLD << "3-R001\n" << ANSI_COLOR_RESET;
+	std::cout << "|\tExample: " << ANSI_COLOR_GOLD << "1-R005" << ANSI_COLOR_RESET << " or multiple " << ANSI_COLOR_GOLD << "3-R001-R015-R006\n" << ANSI_COLOR_RESET;
 	std::cout << "|\t(Enter \"esc\" to return to previous page)\n";
-	std::cout << "|\t" << ANSI_COLOR_GOLD << "1" << ANSI_COLOR_RESET << " Check-in (Reservation)\n";
-	std::cout << "|\t" << ANSI_COLOR_GOLD << "2" << ANSI_COLOR_RESET << " Check-in (Walk-In)\n";
-	std::cout << "|\t" << ANSI_COLOR_GOLD << "3" << ANSI_COLOR_RESET << " Check-out\n";
+	std::cout << "|\n";
+	std::cout << "|\t" << ANSI_COLOR_GOLD << "1-[Room Number]" << ANSI_COLOR_RESET << " Check-in (Reservation)\n";
+	std::cout << "|\t" << ANSI_COLOR_GOLD << "2-[Room Number]" << ANSI_COLOR_RESET << " Check-in (Walk-In)\n";
+	std::cout << "|\t" << ANSI_COLOR_GOLD << "3-[Room Number]" << ANSI_COLOR_RESET << " Check-out\n";
 	std::cout << "|\t-------------------------------\n";
 	std::cout << "|\t" << ANSI_COLOR_GOLD << "00" << ANSI_COLOR_RESET << " Back to previous page\n";
 	std::cout << "|\n";
@@ -215,9 +276,14 @@ void Receptionist::renderMenuOfCICO() {
 			break;
 		}
 
-		if (!Util::isRoomNumberExist(rooms, db)) {
-			std::cout << "|\t" << ANSI_COLOR_RED << "Room(s) do not exist\n" << ANSI_COLOR_RESET;
-			std::cout << "|\n";
+		if (rooms.size() <= 0) {
+			Util::showNegativeMessage("You must enter at least 1 room number");
+		}
+		else if (!Util::isRoomNumberExist(rooms, db)) { // If does NOT exist
+			Util::showNegativeMessage("Room(s) do not exist");
+		}
+		else if (!Util::isRoomsAvailable(rooms, db)) { // If is NOT available
+			Util::showNegativeMessage("The selected room(s) are unavailable at the moment");
 		}
 		else {
 			if (action == "1") {
@@ -230,7 +296,9 @@ void Receptionist::renderMenuOfCICO() {
 				renderCO(rooms, db);
 			}
 		}
+		std::cout << "|\n";
 	} while (true);
+	std::cout << "|\n";
 	Util::showHorizontalLine("single");
 }
 
@@ -291,24 +359,3 @@ void Receptionist::renderMainMenu() {
 }
 
 
-
-
-//std::cout << "|\t-------------------------------------------------------------------------------------------------\n";
-//std::cout << "|\t| Room Status  | Room Number\t| Room Name\t|\tPax\t|  Start Date\t| End Date\t|\n";
-//std::cout << "|\t-------------------------------------------------------------------------------------------------\n";
-//std::cout << "|\t| Available    | R001\t\t| Single Room\t|\t1\t|\t-\t|\t\t|\n";
-//std::cout << "|\t| Occupied     | R002\t\t| Single Room\t|\t1\t|  3/4/2024\t|  4/4/2023\t|\n";
-//std::cout << "|\t| Overdue   [0]| R003\t\t| Double Room\t|\t2\t|  1/4/2024\t|  3/4/2024\t|\n";
-//std::cout << "|\t| Available    | R004\t\t| Double Room\t|\t2\t|\t-\t|\t-\t|\n";
-//std::cout << "|\t| Available    | R005\t\t| Queen Room\t|\t2\t|\t-\t|\t-\t|\n";
-//std::cout << "|\t| Available    | R006\t\t| Queen Room\t|\t2\t|\t-\t|\t-\t|\n";
-//std::cout << "|\t| Occupied     | R007\t\t| Deluxe Room\t|\t3\t|  3/4/2024\t|  5/4/2024 \t|\n";
-//std::cout << "|\t| Occupied     | R008\t\t| Deluxe Room\t|\t3\t|  3/4/2024\t|  5/4/2024\t|\n";
-//std::cout << "|\t| Reserved  [+]| R009\t\t| Deluxe Room\t|\t3\t|  4/4/2024\t|  6/4/2024\t|\n";
-//std::cout << "|\t| Available    | R010\t\t| Deluxe Room\t|\t3\t|\t-\t|\t-\t|\n";
-//std::cout << "|\t| Available    | R011\t\t| Deluxe Room\t|\t3\t|\t-\t|\t-\t|\n";
-//std::cout << "|\t| Available    | R012\t\t| Single Room\t|\t1\t|\t-\t|\t-\t|\n";
-//std::cout << "|\t| Due Out   [#]| R013\t\t| Single Room\t|\t1\t|  3/4/2024\t|  4/4/2024\t|\n";
-//std::cout << "|\t| Available    | R014\t\t| King Room\t|\t2\t|\t-\t|\t-\t|\n";
-//std::cout << "|\t| Reserved  [+]| R015\t\t| King Room\t|\t2\t|  4/4/2024\t|  6/4/2024\t|\n";
-//std::cout << "|\t-------------------------------------------------------------------------------------------------	\n";

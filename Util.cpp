@@ -47,6 +47,10 @@ void Util::showPositiveMessage(std::string message) {
 	std::cout << "|\t" << ANSI_COLOR_GREEN << "[ "<< message <<" ]\n" << ANSI_COLOR_RESET;
 	std::cout << "|\n";
 }
+
+void Util::showNegativeMessage(std::string message) {
+	std::cout << "|\t" << ANSI_COLOR_RED << message << "\n" << ANSI_COLOR_RESET;
+}
 ////
 
 
@@ -57,7 +61,10 @@ std::string Util::parseUsernameInput() {
 	constexpr int maxLength = 30;
 
 	while (true) {
-		std::cout << "|\tUsername\t: "; std::getline(std::cin, input);
+		std::cout << "|\tUsername\t: "; 
+		std::cout << ANSI_COLOR_GOLD;
+		std::getline(std::cin, input);
+		std::cout << ANSI_COLOR_RESET;
 
 		// Exit
 		if (input == "esc" || input == "ESC") {
@@ -68,8 +75,8 @@ std::string Util::parseUsernameInput() {
 		// Validation
 		const bool inputFormatIsIncorrect = !std::all_of(input.begin(), input.end(), [](char c) { return isalnum(c) || c == '_' || c == '.'; });
 		if (inputFormatIsIncorrect || input.empty() || input.length() > maxLength) {
-			std::cout << "|\t" << ANSI_COLOR_RED << "Username must be between 1 and 30 characters long and can\n" << ANSI_COLOR_RESET;
-			std::cout << "|\t" << ANSI_COLOR_RED << "only contain letters(A - Z, a - z), numbers (0-9), underscores (_), and periods (.)\n" << ANSI_COLOR_RESET;
+			showNegativeMessage("Username must be between 1 and 30 characters long and can");
+			showNegativeMessage("only contain letters(A - Z, a - z), numbers (0-9), underscores (_), and periods (.)");
 		}
 		else {
 			break;
@@ -86,7 +93,9 @@ std::string Util::parseNameInput() {
 
 	while (true) {
 		std::cout << "|\tName\t\t: ";
+		std::cout << ANSI_COLOR_GOLD;
 		std::getline(std::cin, input);
+		std::cout << ANSI_COLOR_RESET;
 
 		// Exit
 		if (input == "esc" || input == "ESC") {
@@ -95,13 +104,13 @@ std::string Util::parseNameInput() {
 
 		// Validation
 		if (input.empty()) {
-			std::cout << "|\t" << ANSI_COLOR_RED << "Name must be filled\n" << ANSI_COLOR_RESET;
+			showNegativeMessage("Name must be filled");
 		}
 		else if (input.length() > maxLength) {
-			std::cout << "|\t" << ANSI_COLOR_RED << "Name is too long\n" << ANSI_COLOR_RESET;
+			showNegativeMessage("Name is too long");
 		}
 		else if (!std::all_of(input.begin(), input.end(), [](char c) { return std::isalpha(c) || std::isspace(c); })) {
-			std::cout << "|\t" << ANSI_COLOR_RED << "Name must only contain letters (A-Z, a-z)\n" << ANSI_COLOR_RESET;
+			showNegativeMessage("Name must only contain letters (A-Z, a-z)");
 		}
 		else {
 			break;
@@ -118,7 +127,9 @@ std::string Util::parseICNumberInput() {
 
 	while (true) {
 		std::cout << "|\tIC number\t: ";
+		std::cout << ANSI_COLOR_GOLD;
 		std::getline(std::cin, input);
+		std::cout << ANSI_COLOR_RESET;
 
 		// Exit
 		if (input == "esc" || input == "ESC") {
@@ -127,13 +138,13 @@ std::string Util::parseICNumberInput() {
 
 		// Validation
 		if (input.empty()) {
-			std::cout << "|\t" << ANSI_COLOR_RED << "IC Number must be filled\n" << ANSI_COLOR_RESET;
+			showNegativeMessage("IC Number must be filled");
 		}
 		else if (!std::all_of(input.begin(), input.end(), ::isdigit)) {
-			std::cout << "|\t" << ANSI_COLOR_RED << "Please enter digits only (no dashes \"-\")\n" << ANSI_COLOR_RESET;
+			showNegativeMessage("Please enter digits only (no dashes \"-\")");
 		}
 		else if (input.length() != exactLength) {
-			std::cout << "|\t" << ANSI_COLOR_RED << "IC number has incorrect format\n" << ANSI_COLOR_RESET;
+			showNegativeMessage("IC number has incorrect format");
 		}
 		else {
 			break;
@@ -151,7 +162,9 @@ std::string Util::parsePhoneNumberInput() {
 
 	while (true) {
 		std::cout << "|\tPhone number (optional)\t: ";
+		std::cout << ANSI_COLOR_GOLD;
 		std::getline(std::cin, input);
+		std::cout << ANSI_COLOR_RESET;
 
 		// Exit
 		if (input == "esc" || input == "ESC") {
@@ -160,10 +173,10 @@ std::string Util::parsePhoneNumberInput() {
 
 		// Validation
 		if (!std::all_of(input.begin(), input.end(), ::isdigit)) {
-			std::cout << "|\t" << ANSI_COLOR_RED << "Please enter numbers only (no dashes)\n" << ANSI_COLOR_RESET;
+			showNegativeMessage("Please enter numbers only (no dashes)");
 		}
 		else if ((!input.empty() && (input.length() < minLength || input.length() > 20))) {
-			std::cout << "|\t" << ANSI_COLOR_RED << "Incorrect phone number length\n" << ANSI_COLOR_RESET;
+			showNegativeMessage("Incorrect phone number length");
 		}
 		else {
 			break;
@@ -185,7 +198,9 @@ std::string Util::parsePasswordInput(const bool& hide, const bool& isReg) {
 
 		// Input style (hide or unhide)
 		if (!hide) {
+			std::cout << ANSI_COLOR_GOLD;
 			std::getline(std::cin, input);
+			std::cout << ANSI_COLOR_RESET;
 		}
 		else {
 			char ch;
@@ -214,11 +229,11 @@ std::string Util::parsePasswordInput(const bool& hide, const bool& isReg) {
 
 		// Validation
 		if (input.empty()) {
-			std::cout << "|\t" << ANSI_COLOR_RED << "Password must be filled\n" << ANSI_COLOR_RESET;
+			showNegativeMessage("Password must be filled");
 		}
 		else if (isReg && !std::regex_match(input, pattern)) {
-			std::cout << "|\t" << ANSI_COLOR_RED << "Password must be at least 8 characters long and contain at least 1 digit,\n" << ANSI_COLOR_RESET;
-			std::cout << "|\t" << ANSI_COLOR_RED << "1 uppercase letter, and 1 lowercase letter\n" << ANSI_COLOR_RESET;
+			showNegativeMessage("Password must be at least 8 characters long and contain at least 1 digit,");
+			showNegativeMessage("1 uppercase letter, and 1 lowercase letter");
 		}
 		else {
 			break; // Exit loop if all conditions are met
@@ -246,13 +261,13 @@ std::string Util::parseTextInput() {
 		}
 
 		if (input.empty()) {
-			std::cout << "|\t" << ANSI_COLOR_RED << "Must not be empty\n" << ANSI_COLOR_RESET;
+			showNegativeMessage("Must not be empty");
 		}
 		else if (!std::regex_match(input, pattern)) {
-			std::cout << "|\t" << ANSI_COLOR_RED << "Can only contain numbers, letters or dashes \"-\"\n" << ANSI_COLOR_RESET;
+			showNegativeMessage("Can only contain numbers, letters or dashes \"-\"");
 		}
 		else {
-			break; // Exit loop if all conditions are met
+			break;
 		}
 		std::cout << "|\n";
 	} while (true);
@@ -260,20 +275,68 @@ std::string Util::parseTextInput() {
 }
 
 
-std::string Util::parseDateInput() {
+std::string Util::parseDateInput(std::string text, const bool& showInstruction, std::string startDate = "") {
+	const std::regex datePattern(R"((\d{4})-(\d{2})-(\d{2}))");
 	std::string input;
 
+	if (showInstruction) { std::cout << "|\tIn YYYY-MM-DD format (2001-05-03)\n"; }
 	do {
-		std::cout << "|\tIC number\t: ";
+		std::cout << "|\t" << text << "\t: ";
+		std::cout << ANSI_COLOR_GOLD;
 		std::getline(std::cin, input);
-
+		std::cout << ANSI_COLOR_RESET;
 		
+		// Exit
+		if (input == "esc" || input == "ESC") {
+			return __EXIT_CODE__;
+		}
+
+		int day, month, year;
+		if (!std::regex_match(input, datePattern)) {
+			showNegativeMessage("Date must be in DD/MM/YYYY format");
+		}
+		else {
+			// Extracting parts of the date from the inputted format (DD/MM/YYYY)
+			std::smatch match;
+			std::regex_search(input, match, datePattern);
+			year = std::stoi(match[1].str());
+			month = std::stoi(match[2].str());
+			day = std::stoi(match[3].str());
+		}
+		
+
+		// Basic validation of month and day ranges
+		bool dateIsInvalid = 
+			(month < 1 || month > 12) ||
+			(day < 1 || day > 31) ||
+			((month == 4 || month == 6 || month == 9 || month == 11) && day > 30);
+		if (dateIsInvalid) {
+			showNegativeMessage("Invalid date");
+		}
+		else if (month == 2) {  
+			bool isLeapYear = (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+			if (day > 29 || (day == 29 && !isLeapYear)) {
+				showNegativeMessage("Invalid date (This year is a leap year)");
+			}
+		} 
+		else if (startDate.empty()) {
+			if (Util::firstDateIsEarlier(input, getCurrentDate())) {
+				showNegativeMessage("Date must not be earlier than today");
+			}
+		}
+		else if (Util::firstDateIsEarlier(input, startDate)) {
+			showNegativeMessage("Date must not be earlier than starting date");
+		}
+		else {
+			break;
+		}
+		std::cout << "|\n";
 	} while (true);
+	return input;
 }
+
 /////
 
-
-////
 
 
 // Miscellaneous functions
@@ -289,10 +352,10 @@ std::string Util::getCurrentDate() {
 	// Format the date as dd/mm/yyyy
 	std::ostringstream oss;
 	oss << std::setfill('0');
-	oss << std::setw(2) << localTime.tm_mday << "/" // Day
-		<< std::setw(2) << (localTime.tm_mon + 1) << "/" // Month (zero-based)
-		<< (localTime.tm_year + 1900); // Year (years since 1900)
-
+	oss << (localTime.tm_year + 1900) << "-"// Year (years since 1900)
+		<< std::setw(2) << (localTime.tm_mon + 1) << "-" // Month (zero-based)
+		<< std::setw(2) << localTime.tm_mday; // Day
+		
 	return oss.str();
 }
 
@@ -342,34 +405,79 @@ std::vector<std::string> Util::split(const std::string& str, char delimiter) {
 }
 
 
+
+bool Util::firstDateIsEarlier(const std::string& date1, const std::string& date2) {
+	struct std::tm tm1 = {};
+	struct std::tm tm2 = {};
+
+	// Convert date strings to tm structures
+	std::istringstream ss1(date1);
+	std::istringstream ss2(date2);
+
+	ss1 >> std::get_time(&tm1, "%Y-%m-%d");
+	ss2 >> std::get_time(&tm2, "%Y-%m-%d");
+
+	// Convert tm structures to time_t
+	std::time_t time1 = std::mktime(&tm1);
+	std::time_t time2 = std::mktime(&tm2);
+
+	// Compare time_t values
+	return time1 < time2;
+}
+
+
+
 // Table data
 bool Util::isRoomNumberExist(const std::vector<std::string>& rooms, DBConnection& db){
-	for (int i = 0; i < rooms.size(); ++i) {
-		int count = 0;
-		bool roomExists = false;
-		db.res->beforeFirst();
-		while (db.res->next()) {
-			count++;
-			std::cout << count << db.res->getString("RoomNumber") << rooms[i] << "\n";
-			if (rooms[i] == db.res->getString("RoomNumber")) {
-				roomExists = true;
-				break;
+	try {
+		for (int i = 0; i < rooms.size(); ++i) {
+			int count = 0;
+			bool roomExists = false;
+			db.res->beforeFirst();
+			while (db.res->next()) {
+				/*count++;
+				std::cout << count << db.res->getString("RoomNumber") << rooms[i] << "\n";
+				*/
+				if (rooms[i] == db.res->getString("RoomNumber")) {
+					roomExists = true;
+					break;
+				}
+			}
+			if (!roomExists) {
+				return false;
 			}
 		}
-		if (!roomExists) {
-			return false; // If any room doesn't exist, return false
-		}
+	} catch (sql::SQLException& e) {
+		std::cerr << "|\tSQL Exception: " << e.what() << " (MySQL error code: " << e.getErrorCode() << ", SQLState: " << e.getSQLState() << ")" << std::endl;
 	}
 	return true;
 }
 
+
+bool Util::isRoomsAvailable(const std::vector<std::string>& rooms, DBConnection& db) {
+	try {
+		db.res->beforeFirst();
+		for (int i = 0; i < rooms.size(); i++) {
+			while (db.res->next()) {
+				if (rooms[i] == db.res->getString("RoomNumber")) {
+					if ("Available" != db.res->getString("RoomStatus")) {
+						return false;
+					}
+				}
+			}
+		}
+		return true;
+	} catch (sql::SQLException& e) {
+		std::cerr << "|\tSQL Exception: " << e.what() << " (MySQL error code: " << e.getErrorCode() << ", SQLState: " << e.getSQLState() << ")" << std::endl;
+	}
+}
 
 
 bool Util::updateRoomStatuses() {
 	try {
 		DBConnection db;
 		db.prepareStatement("UPDATE room r"
-							" LEFT JOIN booking b ON r.RoomNumber = b.RoomNumber AND b.StartDate = CURRENT_DATE"
+							" LEFT JOIN bookingline b ON r.RoomNumber = b.RoomNumber AND b.StartDate = CURRENT_DATE"
 							" SET r.RoomStatus ="
 							" CASE"
 							" WHEN b.BookingStatus = 'Checked-in' && (CURRENT_DATE BETWEEN b.StartDate AND b.EndDate) THEN 'Occupied'"
@@ -381,5 +489,25 @@ bool Util::updateRoomStatuses() {
 	} catch (sql::SQLException& e) {
 		std::cerr << "|\tSQL Exception: " << e.what() << " (MySQL error code: " << e.getErrorCode() << ", SQLState: " << e.getSQLState() << ")" << std::endl;
 	}
+	return true;
+}
+
+bool Util::updateBookingNetPrice(std::string bookingID) {
+	try {
+		DBConnection db;
+		db.prepareStatement("UPDATE room r"
+							" LEFT JOIN bookingline b ON r.RoomNumber = b.RoomNumber AND b.StartDate = CURRENT_DATE"
+							" SET r.RoomStatus ="
+							" CASE"
+							" WHEN b.BookingStatus = 'Checked-in' && (CURRENT_DATE BETWEEN b.StartDate AND b.EndDate) THEN 'Occupied'"
+							" WHEN b.BookingStatus = 'Reserved' THEN 'Reserved'"
+							" WHEN b.BookingStatus = 'Checked-out' OR b.BookingStatus = 'Cancelled' OR b.BookingStatus IS NULL THEN 'Available'"
+							" END;");
+		db.QueryStatement();
+		db.~DBConnection();
+	} catch (sql::SQLException& e) {
+		std::cerr << "|\tSQL Exception: " << e.what() << " (MySQL error code: " << e.getErrorCode() << ", SQLState: " << e.getSQLState() << ")" << std::endl;
+	}
+	return true;
 }
 //////
