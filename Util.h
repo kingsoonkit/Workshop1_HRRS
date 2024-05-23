@@ -7,6 +7,8 @@
 #include <conio.h>
 #include <regex>
 #include <vector>
+#include <string>
+#include <sstream>
 #include "tabulate/table.hpp"
 #include "DBConnection.h"
 
@@ -28,19 +30,26 @@ public:
 	static void showHorizontalLine(const std::string& lines);
 	static void showRefreshCountdown();
 	static void showLogHeading(const std::string& name, const std::string& id, const std::string& userType);
+	static void showLogHeading(const std::string& name, const std::string& userType);
 	static void showInvalidAction();
+	static void showPositiveMessage(std::string message);
+
+	static std::string writeTodayDate(const bool addNewline, int tabCount);
 
 	static std::string parseUsernameInput();
 	static std::string parseNameInput();
 	static std::string parseICNumberInput();
 	static std::string parsePhoneNumberInput();
 	static std::string parsePasswordInput(const bool& hide, const bool& isReg);
+	static std::string parseTextInput();
+	static std::string parseDateInput();
 
 	static std::string getCurrentDate();
 	static std::string hashText(const std::string& input);
 	static std::string truncateDecimal(std::string input);
-	static std::vector<std::string> splitString(const std::string& s, char delimiter);
+	static std::vector<std::string> split(const std::string& s, char delimiter);
 
+	static bool isRoomNumberExist(const std::vector<std::string>& rooms, DBConnection& db);
 	static bool updateRoomStatuses();
 };
 

@@ -3,8 +3,12 @@
 
 int main() {
     //Util::updateRoomStatuses();
-    Login::renderStartMenu();
+    //Login::renderStartMenu();
     //Receptionist::renderMainMenu();
+   // Receptionist::renderMenuOfCICO();
+    Receptionist::renderMenuOfCICO();
+    //Receptionist::renderCICOMenu();
+    //std::cout << Util::hashText("system32");
 
 }
 

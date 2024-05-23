@@ -5,11 +5,11 @@
 void Login::prepareMainMenuAccess(const std::string& username) {
 	try {
 		DBConnection db;
-		db.prepareStatement("SELECT GuestUsername AS Username, UserType FROM Guest "
-							"WHERE GuestUsername = ? "
-							"UNION "
-							"SELECT StaffUsername AS Username, UserType FROM Staff "
-							"WHERE StaffUsername = ?");
+		db.prepareStatement("SELECT GuestUsername AS Username, UserType FROM Guest"
+							" WHERE GuestUsername = ?"
+							" UNION"
+							" SELECT StaffUsername AS Username, UserType FROM Staff "
+							" WHERE StaffUsername = ?");
 		db.stmt->setString(1, username);
 		db.stmt->setString(2, username);
 		db.QueryResult();
@@ -25,12 +25,11 @@ void Login::prepareMainMenuAccess(const std::string& username) {
 				db.QueryResult();
 
 				if (db.res->next()) {
-					Guest::setGuestUsername(db.res->getString("GuestUsername"));
-					Guest::setName(db.res->getString("Name"));
 					Guest::setICNumber(db.res->getString("ICNumber"));
+					Guest::setName(db.res->getString("Name"));
 					Guest::setPhoneNo(db.res->getString("PhoneNo"));
-					Guest::setUserType(db.res->getString("UserType"));
 					Guest::setPassword(db.res->getString("Password"));
+					Guest::setUserType(db.res->getString("UserType"));
 
 					Guest::renderMainMenu();
 				}
@@ -66,6 +65,9 @@ void Login::prepareMainMenuAccess(const std::string& username) {
 				}
 			}
 		}
+		else {
+			std::cout << "prepareMainMenu fail sudah";
+		}
 	} catch (const std::exception& e) {
 		std::cerr << "|\tError accessing user: " << e.what() << std::endl;
 	}
@@ -97,12 +99,10 @@ void Login::renderLoginPrompt() {
 		isGuest = Guest::isPasswordCorrect(username, password);
 		isStaff = Staff::isPasswordCorrect(username, password);
 		if (isGuest || isStaff) {
-			std::cout << "|\n";
-			std::cout << "|\t" << ANSI_COLOR_GREEN << "{ Logging In }\n" << ANSI_COLOR_RESET;
-			std::cout << "|\n";
+			Util::showPositiveMessage("Logging in");
 			Util::showHorizontalLine("double");
 			Util::showRefreshCountdown();
-			prepareMainMenuAccess(username);
+			Login::prepareMainMenuAccess(username);
 			break;
 		}
 	} while (true);

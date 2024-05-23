@@ -4,22 +4,25 @@
 #include "Util.h"
 #include "DBConnection.h"
 
+#define GUEST_USERTYPE "Guest"
+
 class Guest {
 public:
+	static void setICNumber(const  std::string& ICNumber);
 	static void setGuestUsername(const  std::string& guestUsername);
 	static void setName(const  std::string& name);
-	static void setICNumber(const  std::string& ICNumber);
 	static void setPhoneNo(const  std::string& phoneNo);
-	static void setUserType(const  std::string& userType);
 	static void setPassword(const  std::string& password);
+	static void setUserType(const  std::string& userType);
 
+	static std::string getICNumber();
 	static std::string getGuestUsername();
 	static std::string getName();
-	static std::string getICNumber();
 	static std::string getPhoneNo();
-	static std::string getUserType();
 	static std::string getPassword();
+	static std::string getUserType();
 
+	static bool isICNumberExist(const std::string& ICNumber);
 	static bool isUsernameExist(const std::string& username);
 	static bool isPasswordCorrect(const std::string& username, const std::string& password);
 
@@ -29,12 +32,12 @@ public:
 	static void renderMainMenu();
 
 private:
+	static std::string ICNumber;
 	static std::string guestUsername;
 	static std::string name;
-	static std::string ICNumber;
 	static std::string phoneNo;
-	static std::string userType;
 	static std::string password;
+	static std::string userType;
 };
 
 #endif

@@ -1,57 +1,76 @@
 #include "Guest.h"
 
+std::string Guest::ICNumber;
 std::string Guest::guestUsername;
 std::string Guest::name;
-std::string Guest::ICNumber;
 std::string Guest::phoneNo;
-std::string Guest::userType;
 std::string Guest::password;
+std::string Guest::userType;
 
 
 
 // Setters 
+void Guest::setICNumber(const std::string& ICNumber) {
+	Guest::ICNumber = ICNumber;
+}
 void Guest::setGuestUsername(const std::string& guestUsername) {
 	Guest::guestUsername = guestUsername;
 }
 void Guest::setName(const std::string& name) {
 	Guest::name = name;
 }
-void Guest::setICNumber(const std::string& ICNumber) {
-	Guest::ICNumber = ICNumber;
-}
 void Guest::setPhoneNo(const std::string& phoneNo) {
 	Guest::phoneNo = phoneNo;
-}
-void Guest::setUserType(const std::string& userType) {
-	Guest::userType = userType;
 }
 void Guest::setPassword(const std::string& password) {
 	Guest::password = password;
 }
+void Guest::setUserType(const std::string& userType) {
+	Guest::userType = userType;
+}
 
 // Getters
+std::string Guest::getICNumber() {
+	return ICNumber;
+}
 std::string Guest::getGuestUsername() {
 	return guestUsername;
 }
 std::string Guest::getName() {
 	return name;
 }
-std::string Guest::getICNumber() {
-	return ICNumber;
-}
 std::string Guest::getPhoneNo() {
 	return phoneNo;
 }
-std::string Guest::getUserType() {
-	return userType;
-}
 std::string Guest::getPassword() {
 	return password;
+}
+std::string Guest::getUserType() {
+	return userType;
 }
 
 
 
 // Functionalities
+bool Guest::isICNumberExist(const std::string& ICNumber) {
+	try {
+		DBConnection db;
+		db.prepareStatement("SELECT ICNumber"
+							" FROM Guest"
+							" WHERE ICNumber = ?");
+		db.stmt->setString(1, ICNumber);
+		db.QueryResult();
+
+		if (db.res->rowsCount() == 1) {
+			return true;
+		}
+	} catch (sql::SQLException& e) {
+		std::cerr << "|\tSQL Exception: " << e.what() << " (MySQL error code: " << e.getErrorCode() << ", SQLState: " << e.getSQLState() << ")" << std::endl;
+	}
+	return false;
+}
+
+
 bool Guest::isUsernameExist(const std::string& username) {
 	try {
 		DBConnection db;
@@ -115,49 +134,65 @@ void Guest::renderRegisterPrompt() {
 		std::cout << "|\n";
 
 		std::string tempArr[5];
+		
+		do {
+			tempArr[0] = Util::parseICNumberInput();
+			if (tempArr[0] == __EXIT_CODE__) { break; }
+			if (Guest::isICNumberExist(tempArr[0])) {
+				std::cout << "|\t" << ANSI_COLOR_RED << "This IC number already in the system. You may return to login\n" << ANSI_COLOR_RESET;
+				std::cout << "|\n";
+			}
+			else {
+				std::cout << "|\t" << ANSI_COLOR_GREEN << "[OK]\n" << ANSI_COLOR_RESET;
+				std::cout << "|\t-----------------------------------\n";
+				break;
+			}
+		} while (true);
+		
 
-		tempArr[0] = Util::parseUsernameInput();
-		if (tempArr[0] == __EXIT_CODE__) { break; }
-		if (Guest::isUsernameExist(tempArr[0])) {
-			std::cout << "|\t" << ANSI_COLOR_RED << "This username is already taken. Try another one\n" << ANSI_COLOR_RESET;
-		}
-		else {
-			std::cout << "|\t" << ANSI_COLOR_GREEN << "[OK]\n" << ANSI_COLOR_RESET;
-			std::cout << "|\t-----------------------------------\n";
-		}
+		std::cout << "|\tUsername will be used for login.\n";
+		std::cout << "|\n";
+		do {
+			tempArr[1] = Util::parseUsernameInput();
+			if (tempArr[0] == __EXIT_CODE__) { break; }
+			if (Guest::isUsernameExist(tempArr[1])) {
+				std::cout << "|\t" << ANSI_COLOR_RED << "This username already exists. Try another one\n" << ANSI_COLOR_RESET;
+				std::cout << "|\n";
+			}
+			else {
+				std::cout << "|\t" << ANSI_COLOR_GREEN << "[OK]\n" << ANSI_COLOR_RESET;
+				std::cout << "|\t-----------------------------------\n";
+				break;
+			}
+		} while (true);
+		
 
-		tempArr[1] = Util::parseNameInput();
-		if (tempArr[1] == __EXIT_CODE__) { break; }
-
-		tempArr[2] = Util::parseICNumberInput();
+		tempArr[2] = Util::parseNameInput();
 		if (tempArr[2] == __EXIT_CODE__) { break; }
 
 		tempArr[3] = Util::parsePhoneNumberInput();
 		if (tempArr[3] == __EXIT_CODE__) { break; }
 
-		setUserType("Guest");
-
-		tempArr[4] = Util::hashText(Util::parsePasswordInput(false, true));
+		tempArr[4] = Util::parsePasswordInput(false, true);
 		if (tempArr[4] == __EXIT_CODE__) { break; }
+
 
 		try {
 			DBConnection db;
-			db.prepareStatement("INSERT INTO guest (GuestUsername, Name, ICNumber, PhoneNo, UserType, Password) VALUES (?,?,?,?,?,?)");
+			db.prepareStatement("INSERT INTO guest (ICNumber, GuestUsername, Name, PhoneNo, Password, UserType) VALUES (?,?,?,?,?,?)");
 			db.stmt->setString(1, tempArr[0]);
 			db.stmt->setString(2, tempArr[1]);
 			db.stmt->setString(3, tempArr[2]);
 			db.stmt->setString(4, tempArr[3]);
-			db.stmt->setString(5, getUserType());
-			db.stmt->setString(6, tempArr[4]);
+			db.stmt->setString(5, Util::hashText(tempArr[4]));
+			db.stmt->setString(6, GUEST_USERTYPE);
 			db.QueryStatement();
 
 		} catch (sql::SQLException& e) {
 			std::cerr << "|\tSQL Exception: " << e.what() << " (MySQL error code: " << e.getErrorCode() << ", SQLState: " << e.getSQLState() << ")" << std::endl;
 		}
 
-		std::cout << "|\n";
-		std::cout << "|\t" << ANSI_COLOR_GREEN << "[ Registration Complete! ]\n" << ANSI_COLOR_RESET;
-		std::cout << "|\n";
+		Util::showPositiveMessage("Registration Complete!");
 		Util::showHorizontalLine("double");
 		Util::showRefreshCountdown();
 		break;
@@ -181,7 +216,7 @@ void Guest::renderMainMenu() {
 	do {
 		system("cls");
 		Util::showHorizontalLine("double");
-		Util::showLogHeading(getName(), getGuestUsername(), getUserType());
+		Util::showLogHeading(getName(), getUserType());
 		Util::showHorizontalLine("single");
 		std::cout << "|\n";
 		std::cout << "|\t" << ANSI_COLOR_YELLOW << "Main Menu\n" << ANSI_COLOR_RESET;
@@ -212,7 +247,7 @@ void Guest::renderMainMenu() {
 				renderReservationMenu();
 			}
 			if (action == 1) {
-				renderBookingHistory(getGuestUsername());
+				renderBookingHistory(getICNumber());
 			}
 			if (action == 2) {
 				action = 0;

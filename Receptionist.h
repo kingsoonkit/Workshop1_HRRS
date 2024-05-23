@@ -3,17 +3,20 @@
 
 #include "Staff.h"
 
+#define RECEPTIONIST_USERTYPE "Receptionist"
 
 class Receptionist : Staff {
 public:
 	static void renderMainMenu();
 	static void renderRegisterPrompt();
-	static void renderCICOMenu();
+	static void renderMenuOfCICO();
+
+	static void displayRoomDashboard(DBConnection& db);
 
 private:
-	static void renderCI_Reservation(const std::string& roomNumber, DBConnection dbObj);
-	static void renderCI_WalkIn(const std::string& roomNumber, DBConnection dbObj);
-	static void renderCO(const std::string& roomNumber, DBConnection dbObj);
+	static void renderCI_Reservation(const std::vector<std::string>& roomNumber, DBConnection dbObj);
+	static void renderCI_WalkIn(const std::vector<std::string>&, DBConnection dbObj);
+	static void renderCO(const std::vector<std::string>& roomNumber, DBConnection dbObj);
 };
 
 #endif

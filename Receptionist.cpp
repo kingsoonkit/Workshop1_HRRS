@@ -1,4 +1,5 @@
 #include "Receptionist.h"
+#include "Guest.h"
 
 
 void Receptionist::renderRegisterPrompt() {
@@ -14,8 +15,20 @@ void Receptionist::renderRegisterPrompt() {
 
 		std::string tempArr[4];
 
-		tempArr[0] = Util::parseUsernameInput();
-		if (tempArr[0] == __EXIT_CODE__) { break; }
+		std::cout << "|\tUsername will be used for login.\n";
+		do {
+			tempArr[0] = Util::parseUsernameInput();
+			if (tempArr[0] == __EXIT_CODE__) { break; }
+			if (Staff::isUsernameExist(tempArr[0])) {
+				std::cout << "|\t" << ANSI_COLOR_RED << "This username already exists. Try another one\n" << ANSI_COLOR_RESET;
+				std::cout << "|\n";
+			}
+			else {
+				std::cout << "|\t" << ANSI_COLOR_GREEN << "[OK]\n" << ANSI_COLOR_RESET;
+				std::cout << "|\t-----------------------------------\n";
+				break;
+			}
+		} while (true);
 
 		tempArr[1] = Util::parseNameInput();
 		if (tempArr[1] == __EXIT_CODE__) { break; }
@@ -23,29 +36,25 @@ void Receptionist::renderRegisterPrompt() {
 		tempArr[2] = Util::parsePhoneNumberInput();
 		if (tempArr[2] == __EXIT_CODE__) { break; }
 
-		setUserType("Receptionist");
-
-		tempArr[3] = Util::hashText(Util::parsePasswordInput(false, true));
+		tempArr[3] = Util::parsePasswordInput(false, true);
 		if (tempArr[3] == __EXIT_CODE__) { break; }
 
 
 		try {
 			DBConnection db;
-			db.prepareStatement("INSERT INTO Staff (StaffUsername, Name, PhoneNo, UserType, Password) VALUES (?,?,?,?,?)");
+			db.prepareStatement("INSERT INTO Staff (StaffUsername, Name, PhoneNo, Password, UserType) VALUES (?,?,?,?,?)");
 			db.stmt->setString(1, tempArr[0]);
 			db.stmt->setString(2, tempArr[1]);
 			db.stmt->setString(3, tempArr[2]);
-			db.stmt->setString(4, getUserType());
-			db.stmt->setString(5, tempArr[3]);
+			db.stmt->setString(4, Util::hashText(tempArr[3]));
+			db.stmt->setString(5, RECEPTIONIST_USERTYPE);
 			db.QueryStatement();
 
 		} catch (sql::SQLException& e) {
 			std::cerr << "|\tSQL Exception: " << e.what() << " (MySQL error code: " << e.getErrorCode() << ", SQLState: " << e.getSQLState() << ")" << std::endl;
 		}
 
-		std::cout << "|\n";
-		std::cout << "|\t" << ANSI_COLOR_GREEN << "[ Registration Complete! ]\n" << ANSI_COLOR_RESET;
-		std::cout << "|\n";
+		Util::showPositiveMessage("Registration Complete!");
 		Util::showHorizontalLine("double");
 		Util::showRefreshCountdown();
 
@@ -54,147 +63,175 @@ void Receptionist::renderRegisterPrompt() {
 }
 
 
-void Receptionist::renderCI_Reservation(const std::string& roomNumber, DBConnection dbObj) {
+void Receptionist::displayRoomDashboard(DBConnection& db) {
+	tabulate::Table table;
+
+	try {
+		db.prepareStatement("SELECT "
+							" RoomStatus,"
+							" r.RoomNumber AS RoomNumber,"
+							" RoomName,"
+							" Pax,"
+							" PricePerNight,"
+							" b.StartDate AS StartDate,"
+							" b.EndDate AS EndDate"
+							" FROM room r LEFT JOIN bookingline b ON r.RoomNumber = b.RoomNumber");
+		db.QueryResult();
+
+		if (db.res->rowsCount() > 0) {
+			std::string RoomStatus, RoomNumber, RoomName, Pax, PricePerNight, StartDate, EndDate;
+
+			// Add column headers
+			table.add_row({ "RoomStatus", "RoomNumber", "RoomName", "Pax", "PricePerNight", "StartDate", "EndDate" });
+			while (db.res->next()) {
+				RoomStatus = db.res->getString("RoomStatus");
+				RoomNumber = db.res->getString("RoomNumber");
+				RoomName = db.res->getString("RoomName");
+				Pax = db.res->getString("Pax");
+				PricePerNight = Util::truncateDecimal(db.res->getString("PricePerNight"));
+				StartDate = db.res->getString("StartDate");
+				EndDate = db.res->getString("EndDate");
+
+				table.add_row({ RoomStatus, RoomNumber, RoomName, Pax, PricePerNight, StartDate, EndDate });
+			}
+			for (int i = 0; i <= db.res->rowsCount(); i++) {
+				table[i][0].format()
+					.border_left("|\t|")
+					.border_right("\b")  //// TODO: Fix Border
+					.corner_top_left("|\t+")
+					.corner_bottom_left("|\t+");
+			}
+		}
+	} catch (sql::SQLException& e) {
+		std::cerr << "|\tSQL Exception: " << e.what() << " (MySQL error code: " << e.getErrorCode() << ", SQLState: " << e.getSQLState() << ")" << std::endl;
+	}
+
+	// OUTPUT Table
+	std::cout << "|\n";
+	std::cout << "|\t" << ANSI_COLOR_YELLOW << "TODAY'S ROOM DASHBOARD" << ANSI_COLOR_RESET << Util::writeTodayDate(true, 8);
+	std::cout << "|\t----------------------\n";
+	std::cout << "|\n";
+	std::cout << table << '\n';
+	std::cout << "|\n";
+}
+
+
+void Receptionist::renderCI_Reservation(const std::vector<std::string>& roomNumber, DBConnection dbObj) {
 	std::cout << "|\tCheck-in for reservation\n";
 }
 
 
-void Receptionist::renderCI_WalkIn(const std::string& roomNumber, DBConnection dbObj) {
-	while (dbObj.res->next()) {
-		if (roomNumber == dbObj.res->getString("RoomNumber")) {
-			if (dbObj.res->getString("RoomStatus") == "Available") {
+void Receptionist::renderCI_WalkIn(const std::vector<std::string>& roomNumber, DBConnection dbObj) {
+
+	do {
+		std::cout << "| ----------------------------------------------------------------------------------------------------------------------\n";
+		std::cout << "|\n";
+		std::cout << "|\tCheck-In / Check-Out -> Check-in (Walk-In)\n";
+		std::cout << "|\t-----------------------------------------\n";
+		std::cout << "|\n";
+		std::cout << "|\tGuest’s Information\n";
+		std::cout << "|\t-------------------\n";
+		std::string tempArr[5];
+
+		tempArr[0] = Util::parseICNumberInput();
+		if (tempArr[0] == __EXIT_CODE__) { break; }
+
+		tempArr[1] = Util::parseNameInput();
+		if (tempArr[1] == __EXIT_CODE__) { break; }
+
+		tempArr[2] = Util::parsePhoneNumberInput();
+		if (tempArr[2] == __EXIT_CODE__) { break; }
+
+		std::cout << "|\tStay Duration\n";
+		tempArr[3] = Util::parseDateInput();
+		if (tempArr[3] == __EXIT_CODE__) { break; }
+
+		tempArr[4] = Util::parseDateInput();
+		if (tempArr[4] == __EXIT_CODE__) { break; }
 
 
-				/*std::string tempArr[4];
-
-				tempArr[0] = Util::parseUsernameInput();
-				if (tempArr[0] == __EXIT_CODE__) { break; }
-
-				tempArr[1] = Util::parseNameInput();
-				if (tempArr[1] == __EXIT_CODE__) { break; }
-
-				tempArr[2] = Util::parsePhoneNumberInput();
-				if (tempArr[2] == __EXIT_CODE__) { break; }
-
-				setUserType("Guest");
-
-				tempArr[3] = Util::hashText(Util::parsePasswordInput(false, true));
-				if (tempArr[3] == __EXIT_CODE__) { break; }*/
+		std::cout << "|\t-------------------\n";
 
 
-				//  GUEST ASSOCIATION PROBLEM   //
+	} while (true);
 
 
 
-				DBConnection db;
-				db.prepareStatement("UPDATE room SET RoomStatus = ? WHERE RoomNumber = ?");
-				db.stmt->setString(1, "Available");
-				db.stmt->setString(1, roomNumber);
-				db.QueryStatement();
 
-
-				std::cout << "|\t" << ANSI_COLOR_GREEN << "[ Checked-in: " << roomNumber << " for " << name << "]\n" << ANSI_COLOR_RESET;
-			}
-			std::cout << "|\t" << ANSI_COLOR_RED << "Room is unavailable at the moment\n" << ANSI_COLOR_RESET;
-			break;
-		}
+	DBConnection db;
+	std::string query;
+	if (Guest::isICNumberExist(tempArr[0])) {
+		query = "";
 	}
-	std::cout << "|\t" << ANSI_COLOR_RED << "Room does not exist" << ANSI_COLOR_RESET;
+	else {
+		query = "";
+	}
+
+	db.prepareStatement(query);
+
+
+	Util::showPositiveMessage("Booking Confirmed");
+	Util::showHorizontalLine("double");
+	Util::showRefreshCountdown();
 }
 
 
-void Receptionist::renderCO(const std::string& roomNumber, DBConnection dbObj) {
+void Receptionist::renderCO(const std::vector<std::string>& roomNumber, DBConnection dbObj) {
 	std::cout << "|\tCheck-out\n";
 }
 
 
-void Receptionist::renderCICOMenu() {
+void Receptionist::renderMenuOfCICO() {
 	DBConnection db;
-	db.prepareStatement("SELECT "
-						" RoomStatus,"
-						" r.RoomNumber AS RoomNumber,"
-						" RoomName,"
-						" Pax,"
-						" PricePerNight,"
-						" b.StartDate AS StartDate,"
-						" b.EndDate AS EndDate"
-						" FROM room r LEFT JOIN booking b ON r.RoomNumber = b.RoomNumber");
-	db.QueryResult();
 
-	if (db.res->rowsCount() > 0) {
-		tabulate::Table table;
-		std::string RoomStatus, RoomNumber, RoomName, Pax, PricePerNight, StartDate, EndDate;
+	system("cls");
+	Util::showHorizontalLine("double");
+	displayRoomDashboard(db);
+	Util::showHorizontalLine("single");
+	std::cout << "|\n";
+	std::cout << "|\tCheck-In / Check-Out\n";
+	std::cout << "|\t--------------------\n";
+	std::cout << "|\n";
+	std::cout << "|\tEnter a room number and a number to perform action:\n";
+	std::cout << "|\tExample: " << ANSI_COLOR_GOLD << "1-R005" << ANSI_COLOR_RESET << " or " << ANSI_COLOR_GOLD << "3-R001\n" << ANSI_COLOR_RESET;
+	std::cout << "|\t(Enter \"esc\" to return to previous page)\n";
+	std::cout << "|\t" << ANSI_COLOR_GOLD << "1" << ANSI_COLOR_RESET << " Check-in (Reservation)\n";
+	std::cout << "|\t" << ANSI_COLOR_GOLD << "2" << ANSI_COLOR_RESET << " Check-in (Walk-In)\n";
+	std::cout << "|\t" << ANSI_COLOR_GOLD << "3" << ANSI_COLOR_RESET << " Check-out\n";
+	std::cout << "|\t-------------------------------\n";
+	std::cout << "|\t" << ANSI_COLOR_GOLD << "00" << ANSI_COLOR_RESET << " Back to previous page\n";
+	std::cout << "|\n";
+	std::cout << "|\n";
+	do {
+		std::string input = Util::parseTextInput();
+		if (input == __EXIT_CODE__) { break; }
 
-		// Add column headers
-		table.add_row({ "RoomStatus", "RoomNumber", "RoomName", "Pax", "PricePerNight", "StartDate", "EndDate" });
-		while (db.res->next()) {
-			RoomStatus = db.res->getString("RoomStatus");
-			RoomNumber = db.res->getString("RoomNumber");
-			RoomName = db.res->getString("RoomName");
-			Pax = db.res->getString("Pax");
-			PricePerNight = Util::truncateDecimal(db.res->getString("PricePerNight"));
-			StartDate = db.res->getString("StartDate");
-			EndDate = db.res->getString("EndDate");
+		// String splitting
+		std::vector<std::string> temp = Util::split(input, '-');
+		std::vector<std::string> rooms(temp.begin() + 1, temp.end());
+		std::string action = temp[0];
 
-			table.add_row({ RoomStatus, RoomNumber, RoomName, Pax, PricePerNight, StartDate, EndDate });
+		if(action == "00") {
+			break;
 		}
 
-		for (int i = 0; i <= db.res->rowsCount(); i++) {
-			table[i][0].format()
-				.border_left("|\t|")
-				.border_right("\b")  //// TODO: Fix Border
-				.corner_top_left("|\t+")
-				.corner_bottom_left("|\t+");
-		}
-
-		std::cout << "|\n";
-		std::cout << "|\t[  " << ANSI_COLOR_YELLOW << "TODAY'S ROOM DASHBOARD" << ANSI_COLOR_RESET << "  ]                       Today: " << Util::getCurrentDate() << "\n";
-		std::cout << "|\t----------------------------\n";
-		std::cout << "|\n";
-		std::cout << table << '\n';
-		//std::cout << "|\n";
-		//std::cout << "|\t[+] : Checking in today\n";
-		//std::cout << "|\t[#] : Checking out today\n";
-		//std::cout << "|\t[0] : Check-out overdue\n";
-		std::cout << "|\n";
-		Util::showHorizontalLine("single");
-		std::cout << "|\n";
-		std::cout << "|\tEnter a room number and a number to perform action:\n";
-		std::cout << "|\tExample: 1 R099\n";
-		std::cout << "|\t1. Check-in (Self-reservation)\n";
-		std::cout << "|\t2. Check-in (Walk-In)\n";
-		std::cout << "|\t3. Check-out\n";
-		std::cout << "|\t-------------------------------\n";
-		std::cout << "|\t00. Back to previous page\n";
-		std::cout << "|\n";
-		std::cout << "|\n";
-		do {
-			std::string action;
-			std::cout << "|\tAction-#: " << ANSI_COLOR_GOLD; std::cin >> action;
-			std::cout << ANSI_COLOR_RESET;
-
-			if (action == "00") { break; }
-			using namespace std;
-			std::vector<std::string> temp = Util::splitString(action, ' ');
-			if (temp[0] == "1") {
-				renderCI_Reservation(temp[1], db);
-			}
-			else if (temp[0] == "2") {
-				renderCI_WalkIn(temp[1], db);
-			}
-			else if (temp[0] == "3") {
-				renderCO(temp[1], db);
-			}
-			else {
-				Util::showInvalidAction();
-			}
-
+		if (!Util::isRoomNumberExist(rooms, db)) {
+			std::cout << "|\t" << ANSI_COLOR_RED << "Room(s) do not exist\n" << ANSI_COLOR_RESET;
 			std::cout << "|\n";
-
-		} while (true);
-		Util::showHorizontalLine("single");
-		
-	}
+		}
+		else {
+			if (action == "1") {
+				renderCI_Reservation(rooms, db);
+			}
+			else if (action == "2") {
+				renderCI_WalkIn(rooms, db);
+			}
+			else if (action == "3") {
+				renderCO(rooms, db);
+			}
+		}
+	} while (true);
+	Util::showHorizontalLine("single");
 }
 
 
@@ -208,7 +245,7 @@ void Receptionist::renderMainMenu() {
 		Util::showLogHeading(getName(), getStaffUsername(), getUserType());
 		Util::showHorizontalLine("single");
 		std::cout << "|\n";
-		std::cout << "|\t" << ANSI_COLOR_YELLOW << "Main Menu\n" << ANSI_COLOR_RESET;
+		std::cout << "|\t" << ANSI_COLOR_YELLOW << "Main Menu" << ANSI_COLOR_RESET << Util::writeTodayDate(true, 10);
 		std::cout << "|\t---------\n";
 		std::cout << "|\n";
 		std::cout << "|\tSelect an option:\n";
@@ -237,7 +274,7 @@ void Receptionist::renderMainMenu() {
 				//renderReservationSelection();
 			}
 			if (action == 1) {
-				renderCICOMenu();
+				renderMenuOfCICO();
 			}
 			if (action == 2) {
 				//renderBookingHistorySelection();
@@ -247,6 +284,8 @@ void Receptionist::renderMainMenu() {
 				isContinue = false; // Go to previous page
 				break;
 			}
+		default:
+			Util::showInvalidAction();
 		}
 	} while (isContinue);
 }

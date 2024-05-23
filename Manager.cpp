@@ -7,7 +7,7 @@ void Manager::renderMainMenu() {
 	do {
 		system("cls");
 		Util::showHorizontalLine("double");
-		Util::showLogHeading(getName(), getStaffUsername(), getUserType());
+		Util::showLogHeading(getName(), getStaffUsername());
 		Util::showHorizontalLine("single");
 		std::cout << "|\n";
 		std::cout << "|\t" << ANSI_COLOR_YELLOW << "Main Menu\n" << ANSI_COLOR_RESET;
@@ -34,7 +34,7 @@ void Manager::renderMainMenu() {
 			break;
 		case 13:  // Enter key code = 13
 			if (action == 0) {
-				//renderReservationMenu();
+				//renderSalesReport();
 			}
 			if (action == 1) {
 				action = 0;

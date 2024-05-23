@@ -23,14 +23,31 @@ void Util::showRefreshCountdown() {
 
 
 void Util::showLogHeading(const std::string& name, const std::string& id, const std::string& userType) {
-	std::cout << "|\tLOGGED AS: " << ANSI_COLOR_YELLOW << name << ANSI_COLOR_RESET << "  |  Username: " << ANSI_COLOR_YELLOW << id << " " << " [" << userType << "]\n" << ANSI_COLOR_RESET;
+	std::cout << "|\tLOGGED AS: " << ANSI_COLOR_YELLOW << name << " [" << userType << "]" << ANSI_COLOR_RESET << "  |  Username: " << ANSI_COLOR_YELLOW << id << '\n' << ANSI_COLOR_RESET;
 }
 
+void Util::showLogHeading(const std::string& name, const std::string& userType) {
+	std::cout << "|\tLOGGED AS: " << ANSI_COLOR_YELLOW << name << " [" << userType << "]\n" << ANSI_COLOR_RESET;
+}
+
+std::string Util::writeTodayDate(const bool addNewline, int tabCount = 8) {
+	std::string tab_str;
+	for (int i = 0; i < tabCount; i++) {
+		tab_str += "\t";
+	}
+	return ANSI_COLOR_RESET + tab_str + "Today: " + ANSI_COLOR_YELLOW + Util::getCurrentDate() + (addNewline ? "\n" : "") + ANSI_COLOR_RESET;
+}
 
 void Util::showInvalidAction() {
-	std::cout << "|\t" << ANSI_COLOR_RED << "{ Invalid action }\n" << ANSI_COLOR_RED;
+	std::cout << "|\t" << ANSI_COLOR_RED << "{ Invalid action }\n" << ANSI_COLOR_RESET;
 }
-///
+
+void Util::showPositiveMessage(std::string message) {
+	std::cout << "|\n";
+	std::cout << "|\t" << ANSI_COLOR_GREEN << "[ "<< message <<" ]\n" << ANSI_COLOR_RESET;
+	std::cout << "|\n";
+}
+////
 
 
 
@@ -124,14 +141,12 @@ std::string Util::parseICNumberInput() {
 		std::cout << "|\n";
 	}
 
-	// Format the IC number
-	input = input.substr(0, 6) + "-" + input.substr(6, 2) + "-" + input.substr(8, 4);
 	return input;
 }
 
 
 std::string Util::parsePhoneNumberInput() {
-	constexpr int minLength = 15; // Assuming minimum length of 10 digits for a valid phone number
+	constexpr int minLength = 9; // Assuming minimum length of 10 digits for a valid phone number
 	std::string input;
 
 	while (true) {
@@ -147,8 +162,8 @@ std::string Util::parsePhoneNumberInput() {
 		if (!std::all_of(input.begin(), input.end(), ::isdigit)) {
 			std::cout << "|\t" << ANSI_COLOR_RED << "Please enter numbers only (no dashes)\n" << ANSI_COLOR_RESET;
 		}
-		else if ((!input.empty() && input.length() < minLength) || input.length() > minLength) {
-			std::cout << "|\t" << ANSI_COLOR_RED << "Incorrect phone number format\n" << ANSI_COLOR_RESET;
+		else if ((!input.empty() && (input.length() < minLength || input.length() > 20))) {
+			std::cout << "|\t" << ANSI_COLOR_RED << "Incorrect phone number length\n" << ANSI_COLOR_RESET;
 		}
 		else {
 			break;
@@ -213,8 +228,52 @@ std::string Util::parsePasswordInput(const bool& hide, const bool& isReg) {
 
 	return input;
 }
+
+
+std::string Util::parseTextInput() {
+	std::regex pattern("^[a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*$");
+	std::string input;
+
+	do {
+		std::cout << "|\tAction-#: ";
+		std::cout << ANSI_COLOR_GOLD;
+		std::getline(std::cin, input);
+		std::cout << ANSI_COLOR_RESET;
+
+		// Exit
+		if (input == "esc" || input == "ESC") {
+			return __EXIT_CODE__;
+		}
+
+		if (input.empty()) {
+			std::cout << "|\t" << ANSI_COLOR_RED << "Must not be empty\n" << ANSI_COLOR_RESET;
+		}
+		else if (!std::regex_match(input, pattern)) {
+			std::cout << "|\t" << ANSI_COLOR_RED << "Can only contain numbers, letters or dashes \"-\"\n" << ANSI_COLOR_RESET;
+		}
+		else {
+			break; // Exit loop if all conditions are met
+		}
+		std::cout << "|\n";
+	} while (true);
+	return input;
+}
+
+
+std::string Util::parseDateInput() {
+	std::string input;
+
+	do {
+		std::cout << "|\tIC number\t: ";
+		std::getline(std::cin, input);
+
+		
+	} while (true);
+}
 /////
 
+
+////
 
 
 // Miscellaneous functions
@@ -272,18 +331,39 @@ std::string Util::truncateDecimal(std::string input) {
 }
 
 
-std::vector<std::string> Util::splitString(const std::string& s, char delimiter) {
-	std::vector<std::string> tokens;
-	std::string token;
-	std::istringstream tokenStream(s);
-	while (std::getline(tokenStream, token, delimiter)) {
-		tokens.push_back(token);
+std::vector<std::string> Util::split(const std::string& str, char delimiter) {
+	std::vector<std::string> result;
+	std::string item;
+	std::stringstream ss(str);
+	while (std::getline(ss, item, delimiter)) {
+		result.push_back(item);
 	}
-	return tokens;
+	return result;
 }
 
 
 // Table data
+bool Util::isRoomNumberExist(const std::vector<std::string>& rooms, DBConnection& db){
+	for (int i = 0; i < rooms.size(); ++i) {
+		int count = 0;
+		bool roomExists = false;
+		db.res->beforeFirst();
+		while (db.res->next()) {
+			count++;
+			std::cout << count << db.res->getString("RoomNumber") << rooms[i] << "\n";
+			if (rooms[i] == db.res->getString("RoomNumber")) {
+				roomExists = true;
+				break;
+			}
+		}
+		if (!roomExists) {
+			return false; // If any room doesn't exist, return false
+		}
+	}
+	return true;
+}
+
+
 
 bool Util::updateRoomStatuses() {
 	try {
