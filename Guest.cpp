@@ -71,25 +71,6 @@ bool Guest::isICNumberExist(const std::string& ICNumber) {
 }
 
 
-bool Guest::isUsernameExist(const std::string& username) {
-	try {
-		DBConnection db;
-		db.prepareStatement("SELECT GuestUsername"
-							" FROM Guest"
-							" WHERE GuestUsername = ?");
-		db.stmt->setString(1, username);
-		db.QueryResult();
-
-		if (db.res->rowsCount() == 1) {
-			return true;
-		}
-	} catch (sql::SQLException& e) {
-		std::cerr << "|\tSQL Exception: " << e.what() << " (MySQL error code: " << e.getErrorCode() << ", SQLState: " << e.getSQLState() << ")" << std::endl;
-	}
-	return false;
-}
-
-
 bool Guest::isPasswordCorrect(const std::string& username, const std::string& password) {
 	try {
 		const std::string hashedText = Util::hashText(password);
@@ -129,17 +110,20 @@ void Guest::renderRegisterPrompt() {
 		Util::showHorizontalLine("double");
 		std::cout << "|\n";
 		std::cout << "|\t" << ANSI_COLOR_YELLOW << "Register as Guest\n" << ANSI_COLOR_RESET;
-		std::cout << "|\t(Enter \"esc\" to return to previous page)\n";
+		Util::showInputCancelInstruction();
 		std::cout << "|\t------------------------------------------\n";
 		std::cout << "|\n";
 
 		std::string tempArr[5];
-		
+
+		// Parsing IC Number input
+		bool isExiting;
+		isExiting = false;
 		do {
 			tempArr[0] = Util::parseICNumberInput();
-			if (tempArr[0] == __EXIT_CODE__) { break; }
+			if (tempArr[0] == __EXIT_CODE__) { isExiting = true; break; }
 			if (Guest::isICNumberExist(tempArr[0])) {
-				std::cout << "|\t" << ANSI_COLOR_RED << "This IC number already in the system. You may return to login\n" << ANSI_COLOR_RESET;
+				std::cout << "|\t" << ANSI_COLOR_RED << "This IC number is already in the system. You may return to login\n" << ANSI_COLOR_RESET;
 				std::cout << "|\n";
 			}
 			else {
@@ -148,14 +132,17 @@ void Guest::renderRegisterPrompt() {
 				break;
 			}
 		} while (true);
+		if (isExiting) {
+			break; // Break the outer loop if exit code was detected
+		}
 		
-
+		// Parsing IC Number input
+		isExiting = false;
 		std::cout << "|\tUsername will be used for login.\n";
-		std::cout << "|\n";
 		do {
 			tempArr[1] = Util::parseUsernameInput();
-			if (tempArr[0] == __EXIT_CODE__) { break; }
-			if (Guest::isUsernameExist(tempArr[1])) {
+			if (tempArr[0] == __EXIT_CODE__) { isExiting = true; break; }
+			if (DBUtil::isUsernameExist(tempArr[1])) {
 				std::cout << "|\t" << ANSI_COLOR_RED << "This username already exists. Try another one\n" << ANSI_COLOR_RESET;
 				std::cout << "|\n";
 			}
@@ -165,7 +152,9 @@ void Guest::renderRegisterPrompt() {
 				break;
 			}
 		} while (true);
-		
+		if (isExiting) {
+			break; // Break the outer loop if exit code was detected
+		}
 
 		tempArr[2] = Util::parseNameInput();
 		if (tempArr[2] == __EXIT_CODE__) { break; }
@@ -202,11 +191,11 @@ void Guest::renderRegisterPrompt() {
 
 
 void Guest::renderReservationMenu() {
-	
+	// TODO:
 }
 
 void Guest::renderBookingHistory(const std::string& GuestUsername) {
-	
+	// TODO:
 }
 
 

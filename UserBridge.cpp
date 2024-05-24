@@ -1,8 +1,8 @@
-#include "Login.h"
+#include "UserBridge.h"
 
 
 // General Functions
-void Login::prepareMainMenuAccess(const std::string& username) {
+void UserBridge::prepareMainMenuAccess(const std::string& username) {
 	try {
 		DBConnection db;
 		db.prepareStatement("SELECT GuestUsername AS Username, UserType FROM Guest"
@@ -75,7 +75,7 @@ void Login::prepareMainMenuAccess(const std::string& username) {
 
 
 // DRAW, DISPLAY or RENDER Functions
-void Login::renderLoginPrompt() {
+void UserBridge::renderLoginPrompt() {
 	bool isGuest = true;
 	bool isStaff = true;
 	do {
@@ -84,7 +84,7 @@ void Login::renderLoginPrompt() {
 		Util::showHorizontalLine("double");
 		std::cout << "|\n";
 		std::cout << "|\t" << ANSI_COLOR_YELLOW << "LOGIN\n" << ANSI_COLOR_RESET;
-		std::cout << "|\t(Enter keyword \"esc\" to return to previous page)\n";
+		Util::showInputCancelInstruction();
 		std::cout << "|\t--------------------------------------------------\n";
 		if (!isGuest || !isStaff) {
 			std::cout << "|\t" << ANSI_COLOR_RED << "{ Username and password does not match }\n" << ANSI_COLOR_RESET;
@@ -102,17 +102,17 @@ void Login::renderLoginPrompt() {
 			Util::showPositiveMessage("Logging in");
 			Util::showHorizontalLine("double");
 			Util::showRefreshCountdown();
-			Login::prepareMainMenuAccess(username);
+			UserBridge::prepareMainMenuAccess(username);
 			break;
 		}
 	} while (true);
 }
 
 
-void Login::renderStartMenu() {
+void UserBridge::renderStartMenu() {
 	int action = 0;
 	do {
-		system("cls");  // Use the Login command to clear the screen
+		system("cls");  // Use the UserBridge command to clear the screen
 
 		Util::showHorizontalLine("double");
 		std::cout << "|\n";
@@ -146,7 +146,7 @@ void Login::renderStartMenu() {
 		case 13:  // Enter key code = 13
 			if (action == 0) {
 				int action = 0;
-				Login::renderLoginPrompt();
+				UserBridge::renderLoginPrompt();
 			}
 			if (action == 1) {
 				int action = 0;
@@ -168,5 +168,3 @@ void Login::renderStartMenu() {
 		}
 	} while (true);
 }
-
-

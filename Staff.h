@@ -2,7 +2,7 @@
 #define STAFF
 
 #include "Util.h"
-#include "DBConnection.h"
+#include "DBUtil.h"
 
 class Staff {
 public:
@@ -18,7 +18,6 @@ public:
 	static std::string getUserType();
 	static std::string getPassword();
 
-	static bool isUsernameExist(const std::string& username);
 	static bool isPasswordCorrect(const std::string& username, const std::string& password);
 
 protected:

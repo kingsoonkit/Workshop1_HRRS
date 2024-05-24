@@ -147,9 +147,10 @@
     <ClCompile Include="Manager.cpp" />
     <ClCompile Include="Receptionist.cpp" />
     <ClCompile Include="Staff.cpp" />
-    <ClCompile Include="Login.cpp" />
+    <ClCompile Include="UserBridge.cpp" />
     <ClCompile Include="THROWAWAY.cpp" />
     <ClCompile Include="Util.cpp" />
+    <ClCompile Include="DBUtil.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DBConnection.h" />
@@ -157,8 +158,9 @@
     <ClInclude Include="Manager.h" />
     <ClInclude Include="Receptionist.h" />
     <ClInclude Include="Staff.h" />
-    <ClInclude Include="Login.h" />
+    <ClInclude Include="UserBridge.h" />
     <ClInclude Include="Util.h" />
+    <ClInclude Include="DBUtil.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

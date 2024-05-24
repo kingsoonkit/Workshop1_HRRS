@@ -30,6 +30,10 @@ void Util::showLogHeading(const std::string& name, const std::string& userType) 
 	std::cout << "|\tLOGGED AS: " << ANSI_COLOR_YELLOW << name << " [" << userType << "]\n" << ANSI_COLOR_RESET;
 }
 
+void Util::showInputCancelInstruction() {
+	std::cout << "|\t(Enter \"" << ANSI_COLOR_ORANGE << "esc" << ANSI_COLOR_RESET << "\" to return to previous page)\n";
+}
+
 std::string Util::writeTodayDate(const bool addNewline, int tabCount = 8) {
 	std::string tab_str;
 	for (int i = 0; i < tabCount; i++) {
@@ -205,6 +209,7 @@ std::string Util::parsePasswordInput(const bool& hide, const bool& isReg) {
 		else {
 			char ch;
 			int count = 0;
+			std::cout << ANSI_COLOR_GOLD;
 			while ((ch = _getch()) != ENTER) {
 				if (ch == BACKSPACE) {
 					if (!input.empty() && count > 0) {
@@ -219,7 +224,7 @@ std::string Util::parsePasswordInput(const bool& hide, const bool& isReg) {
 					std::cout << '*'; // Print asterisk instead of the typed character
 				}
 			}
-			std::cout << std::endl;
+			std::cout << ANSI_COLOR_RESET << std::endl;
 		}
 
 		// Exit
@@ -340,6 +345,7 @@ std::string Util::parseDateInput(std::string text, const bool& showInstruction, 
 
 
 // Miscellaneous functions
+
 std::string Util::getCurrentDate() {
 	// Get current time
 	std::time_t currentTime;
@@ -394,6 +400,20 @@ std::string Util::truncateDecimal(std::string input) {
 }
 
 
+std::string Util::formatCurrencyDecimal(std::string input) {
+	// Find the position of the decimal point
+	std::size_t decimalPos = input.find('.');
+
+	// If there's no decimal point or the number already has 2 or fewer decimal places, return the original string
+	if (decimalPos == std::string::npos || decimalPos + 3 >= input.size()) {
+		return input;
+	}
+
+	// Otherwise, truncate the string to two decimal places
+	return input.substr(0, decimalPos + 3);
+}
+
+
 std::vector<std::string> Util::split(const std::string& str, char delimiter) {
 	std::vector<std::string> result;
 	std::string item;
@@ -426,88 +446,29 @@ bool Util::firstDateIsEarlier(const std::string& date1, const std::string& date2
 }
 
 
+int Util::daysBetweenDates(const std::string& date1, const std::string& date2) {
+	struct std::tm tm1 = {};
+	struct std::tm tm2 = {};
 
-// Table data
-bool Util::isRoomNumberExist(const std::vector<std::string>& rooms, DBConnection& db){
-	try {
-		for (int i = 0; i < rooms.size(); ++i) {
-			int count = 0;
-			bool roomExists = false;
-			db.res->beforeFirst();
-			while (db.res->next()) {
-				/*count++;
-				std::cout << count << db.res->getString("RoomNumber") << rooms[i] << "\n";
-				*/
-				if (rooms[i] == db.res->getString("RoomNumber")) {
-					roomExists = true;
-					break;
-				}
-			}
-			if (!roomExists) {
-				return false;
-			}
-		}
-	} catch (sql::SQLException& e) {
-		std::cerr << "|\tSQL Exception: " << e.what() << " (MySQL error code: " << e.getErrorCode() << ", SQLState: " << e.getSQLState() << ")" << std::endl;
-	}
-	return true;
-}
+	// Convert date strings to tm structures
+	std::istringstream ss1(date1);
+	std::istringstream ss2(date2);
 
+	ss1 >> std::get_time(&tm1, "%Y-%m-%d");
+	ss2 >> std::get_time(&tm2, "%Y-%m-%d");
 
-bool Util::isRoomsAvailable(const std::vector<std::string>& rooms, DBConnection& db) {
-	try {
-		db.res->beforeFirst();
-		for (int i = 0; i < rooms.size(); i++) {
-			while (db.res->next()) {
-				if (rooms[i] == db.res->getString("RoomNumber")) {
-					if ("Available" != db.res->getString("RoomStatus")) {
-						return false;
-					}
-				}
-			}
-		}
-		return true;
-	} catch (sql::SQLException& e) {
-		std::cerr << "|\tSQL Exception: " << e.what() << " (MySQL error code: " << e.getErrorCode() << ", SQLState: " << e.getSQLState() << ")" << std::endl;
-	}
-}
+	// Ensure that the tm structures are correctly initialized
+	tm1.tm_hour = 0; tm1.tm_min = 0; tm1.tm_sec = 0;
+	tm2.tm_hour = 0; tm2.tm_min = 0; tm2.tm_sec = 0;
 
+	// Convert tm structures to time_t
+	std::time_t time1 = std::mktime(&tm1);
+	std::time_t time2 = std::mktime(&tm2);
 
-bool Util::updateRoomStatuses() {
-	try {
-		DBConnection db;
-		db.prepareStatement("UPDATE room r"
-							" LEFT JOIN bookingline b ON r.RoomNumber = b.RoomNumber AND b.StartDate = CURRENT_DATE"
-							" SET r.RoomStatus ="
-							" CASE"
-							" WHEN b.BookingStatus = 'Checked-in' && (CURRENT_DATE BETWEEN b.StartDate AND b.EndDate) THEN 'Occupied'"
-							" WHEN b.BookingStatus = 'Reserved' THEN 'Reserved'"
-							" WHEN b.BookingStatus = 'Checked-out' OR b.BookingStatus = 'Cancelled' OR b.BookingStatus IS NULL THEN 'Available'"
-							" END;");
-		db.QueryStatement();
-		db.~DBConnection();
-	} catch (sql::SQLException& e) {
-		std::cerr << "|\tSQL Exception: " << e.what() << " (MySQL error code: " << e.getErrorCode() << ", SQLState: " << e.getSQLState() << ")" << std::endl;
-	}
-	return true;
-}
+	// Calculate the difference in seconds and convert to days
+	double differenceInSeconds = std::difftime(time2, time1);
+	int differenceInDays = std::round(differenceInSeconds / (60 * 60 * 24));
 
-bool Util::updateBookingNetPrice(std::string bookingID) {
-	try {
-		DBConnection db;
-		db.prepareStatement("UPDATE room r"
-							" LEFT JOIN bookingline b ON r.RoomNumber = b.RoomNumber AND b.StartDate = CURRENT_DATE"
-							" SET r.RoomStatus ="
-							" CASE"
-							" WHEN b.BookingStatus = 'Checked-in' && (CURRENT_DATE BETWEEN b.StartDate AND b.EndDate) THEN 'Occupied'"
-							" WHEN b.BookingStatus = 'Reserved' THEN 'Reserved'"
-							" WHEN b.BookingStatus = 'Checked-out' OR b.BookingStatus = 'Cancelled' OR b.BookingStatus IS NULL THEN 'Available'"
-							" END;");
-		db.QueryStatement();
-		db.~DBConnection();
-	} catch (sql::SQLException& e) {
-		std::cerr << "|\tSQL Exception: " << e.what() << " (MySQL error code: " << e.getErrorCode() << ", SQLState: " << e.getSQLState() << ")" << std::endl;
-	}
-	return true;
+	return differenceInDays;
 }
 //////

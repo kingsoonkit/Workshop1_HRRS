@@ -2,7 +2,7 @@
 #define GUEST
 
 #include "Util.h"
-#include "DBConnection.h"
+#include "DBUtil.h"
 
 #define GUEST_USERTYPE "Guest"
 
@@ -23,7 +23,6 @@ public:
 	static std::string getUserType();
 
 	static bool isICNumberExist(const std::string& ICNumber);
-	static bool isUsernameExist(const std::string& username);
 	static bool isPasswordCorrect(const std::string& username, const std::string& password);
 
 	static void renderRegisterPrompt();

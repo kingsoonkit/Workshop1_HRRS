@@ -1,12 +1,16 @@
-#include "Login.h"
-#include "Receptionist.h"
+#include "UserBridge.h"
 
 int main() {
-	Util::updateRoomStatuses();
-	//Login::renderStartMenu();
-	//Receptionist::renderMainMenu();
-	Receptionist::renderMenuOfCICO();
-	//Util::parseDateInput("Date");
+	DBUtil::updateRoomStatuses();
+
+	//UserBridge::renderStartMenu();
+	
+
+	Receptionist::renderMainMenu();   // 1
+	//Receptionist::renderMenuOfCICO();  // 2
+
+	//Receptionist::renderBookingHistory();  //3
+
 }
 
 

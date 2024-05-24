@@ -27,7 +27,7 @@
     <ClCompile Include="Guest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Login.cpp">
+    <ClCompile Include="UserBridge.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Staff.cpp">
@@ -40,6 +40,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="THROWAWAY.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DBUtil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -56,13 +59,16 @@
     <ClInclude Include="Guest.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Login.h">
+    <ClInclude Include="UserBridge.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Staff.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DBUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

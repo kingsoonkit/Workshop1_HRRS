@@ -11,12 +11,15 @@ public:
 	static void renderRegisterPrompt();
 	static void renderMenuOfCICO();
 
-	static void displayRoomDashboard(DBConnection& db);
+	static void viewRoomDashboard(DBConnection& db);
 
-private:
+//private:
 	static void renderCI_Reservation(const std::vector<std::string>& rooms, DBConnection dbObj);
 	static void renderCI_WalkIn(const std::vector<std::string>& rooms, DBConnection dbObj);
 	static void renderCO(const std::vector<std::string>& rooms, DBConnection dbObj);
+
+	static void renderBookingHistory();
+	static void viewBookingDetailsOf(const std::string& bookingID);
 };
 
 #endif

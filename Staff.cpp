@@ -41,29 +41,6 @@ std::string Staff::getPassword() {
 }
 
 
-
-bool Staff::isUsernameExist(const std::string& username) {
-	try {
-		DBConnection db;
-		db.prepareStatement("SELECT StaffUsername"
-							" FROM Staff "
-							" WHERE StaffUsername = ?");
-		db.stmt->setString(1, username);
-		db.QueryResult();
-
-		if (db.res->rowsCount() == 1) {
-			return true;
-		}
-
-	} catch (sql::SQLException& e) {
-		std::cerr << "|\tSQL Exception: " << e.what() << " (MySQL error code: " << e.getErrorCode() << ", SQLState: " << e.getSQLState() << ")" << std::endl;
-	}
-
-	return false;
-}
-
-
-
 bool Staff::isPasswordCorrect(const std::string& username, const std::string& password) {
 	try {
 		const std::string hashedInput = Util::hashText(password);

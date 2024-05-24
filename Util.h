@@ -10,7 +10,6 @@
 #include <string>
 #include <sstream>
 #include "tabulate/table.hpp"
-#include "DBConnection.h"
 
 
 #define ANSI_COLOR_RED   "\033[91m"
@@ -32,6 +31,7 @@ public:
 	static void showLogHeading(const std::string& name, const std::string& id, const std::string& userType);
 	static void showLogHeading(const std::string& name, const std::string& userType);
 	static void showInvalidAction();
+	static void showInputCancelInstruction();
 	static void showPositiveMessage(std::string message);
 	static void showNegativeMessage(std::string message);
 
@@ -48,12 +48,10 @@ public:
 	static std::string getCurrentDate();
 	static std::string hashText(const std::string& input);
 	static std::string truncateDecimal(std::string input);
-	static std::vector<std::string> split(const std::string& s, char delimiter);
+	static std::string formatCurrencyDecimal(std::string input);
 
+	static std::vector<std::string> split(const std::string& s, char delimiter);
 	static bool firstDateIsEarlier(const std::string& date1, const std::string& date2);
-	static bool isRoomNumberExist(const std::vector<std::string>& rooms, DBConnection& db);
-	static bool isRoomsAvailable(const std::vector<std::string>& rooms, DBConnection& db);
-	static bool updateRoomStatuses();
-	static bool updateBookingNetPrice(std::string bookingID);
+	static int daysBetweenDates(const std::string& date1, const std::string& date2);
 };
 
