@@ -11,27 +11,26 @@ void Util::showHorizontalLine(const std::string& lines) {
 	}
 }
 
-
 void Util::showRefreshCountdown() {
 	const int seconds = 3;
-	std::cout << "|\tRefreshing in ";
+	std::cout << "|\t" << ANSI_COLOR_ORANGE << "Refreshing in ";
 	for (int i = seconds; i > 0; --i) {
 		std::cout << i << "... ";
 		std::this_thread::sleep_for(std::chrono::seconds(1)); // Wait for 1 second
 	}
+	std::cout << ANSI_COLOR_RESET;
 }
 
-
-void Util::showLogHeading(const std::string& name, const std::string& id, const std::string& userType) {
-	std::cout << "|\tLOGGED AS: " << ANSI_COLOR_YELLOW << name << " [" << userType << "]" << ANSI_COLOR_RESET << "  |  Username: " << ANSI_COLOR_YELLOW << id << '\n' << ANSI_COLOR_RESET;
+void Util::showLogHeading(const std::string& name, const std::string& userType, const std::string& username) {
+	std::cout << "|\tLOGGED AS: " << ANSI_COLOR_YELLOW << name << " [" << userType << "]" << ANSI_COLOR_RESET << "  |  Username: " << ANSI_COLOR_YELLOW << username << '\n' << ANSI_COLOR_RESET;
 }
 
-void Util::showLogHeading(const std::string& name, const std::string& userType) {
-	std::cout << "|\tLOGGED AS: " << ANSI_COLOR_YELLOW << name << " [" << userType << "]\n" << ANSI_COLOR_RESET;
+void Util::showLogHeading(const std::string& userType, const std::string& username) {
+	std::cout << "|\tLOGGED AS: " << ANSI_COLOR_YELLOW << username << " [" << userType << "]\n" << ANSI_COLOR_RESET;
 }
 
-void Util::showInputCancelInstruction() {
-	std::cout << "|\t(Enter \"" << ANSI_COLOR_ORANGE << "esc" << ANSI_COLOR_RESET << "\" to return to previous page)\n";
+void Util::showEscInstruction() {
+	std::cout << "|\t(Enter \"" << ANSI_COLOR_ORANGE << "ESC" << ANSI_COLOR_RESET << "\" to return to previous page)\n";
 }
 
 std::string Util::writeTodayDate(const bool addNewline, int tabCount = 8) {
@@ -42,17 +41,50 @@ std::string Util::writeTodayDate(const bool addNewline, int tabCount = 8) {
 	return ANSI_COLOR_RESET + tab_str + "Today: " + ANSI_COLOR_YELLOW + Util::getCurrentDate() + (addNewline ? "\n" : "") + ANSI_COLOR_RESET;
 }
 
+std::string Util::writeRoomList(const bool addNewline, std::vector<std::string> rooms) {
+	std::string roomList;
+
+	roomList += ANSI_COLOR_GOLD;
+	for (int i = 0; i < rooms.size(); i++) {
+		roomList += rooms[i];
+		if (i != rooms.size() - 1) {
+			roomList += ", ";
+		}
+	}
+	roomList += ANSI_COLOR_RESET;
+	roomList += (addNewline ? "\n" : "");
+
+	return roomList;
+
+}
+
 void Util::showInvalidAction() {
 	std::cout << "|\t" << ANSI_COLOR_RED << "{ Invalid action }\n" << ANSI_COLOR_RESET;
 }
 
-void Util::showPositiveMessage(std::string message) {
-	std::cout << "|\n";
-	std::cout << "|\t" << ANSI_COLOR_GREEN << "[ "<< message <<" ]\n" << ANSI_COLOR_RESET;
-	std::cout << "|\n";
+void Util::showBookingIDDisplay(const std::string& bookingID) {
+	std::cout << "|\t" << ANSI_COLOR_YELLOW << "The Booking ID: " << ANSI_COLOR_GOLD << bookingID << "\n" << ANSI_COLOR_RESET;
 }
 
-void Util::showNegativeMessage(std::string message) {
+void Util::showPressAnyKeyToContinue() {
+	std::cout << "|\t" << ANSI_COLOR_YELLOW << "Enter any key to continue\n" << ANSI_COLOR_RESET;
+	std::cout << "|\n";
+	Util::showHorizontalLine("double");
+	std::cout << "|\t"; _getch();
+	std::cout << "\n";
+}
+
+void Util::showPositiveMessage(const std::string& message, const bool& addMargin) {
+	if (addMargin) { std::cout << "|\n"; }
+	std::cout << "|\t" << ANSI_COLOR_GREEN << "[ "<< message <<" ]\n" << ANSI_COLOR_RESET;
+	if (addMargin) { std::cout << "|\n"; }
+}
+
+void Util::showPassiveMessage(const std::string& message) {
+	std::cout << "|\t" << ANSI_COLOR_GOLD << message << "\n" << ANSI_COLOR_RESET;
+}
+
+void Util::showNegativeMessage(const std::string& message) {
 	std::cout << "|\t" << ANSI_COLOR_RED << message << "\n" << ANSI_COLOR_RESET;
 }
 ////
@@ -65,8 +97,7 @@ std::string Util::parseUsernameInput() {
 	constexpr int maxLength = 30;
 
 	while (true) {
-		std::cout << "|\tUsername\t: "; 
-		std::cout << ANSI_COLOR_GOLD;
+		std::cout << "|\t" << ANSI_COLOR_YELLOW << "Username" << ": " << ANSI_COLOR_GOLD;
 		std::getline(std::cin, input);
 		std::cout << ANSI_COLOR_RESET;
 
@@ -74,7 +105,6 @@ std::string Util::parseUsernameInput() {
 		if (input == "esc" || input == "ESC") {
 			return __EXIT_CODE__;
 		}
-
 
 		// Validation
 		const bool inputFormatIsIncorrect = !std::all_of(input.begin(), input.end(), [](char c) { return isalnum(c) || c == '_' || c == '.'; });
@@ -96,8 +126,7 @@ std::string Util::parseNameInput() {
 	std::string input;
 
 	while (true) {
-		std::cout << "|\tName\t\t: ";
-		std::cout << ANSI_COLOR_GOLD;
+		std::cout << "|\t" << ANSI_COLOR_YELLOW << "Name" << ": " << ANSI_COLOR_GOLD;
 		std::getline(std::cin, input);
 		std::cout << ANSI_COLOR_RESET;
 
@@ -130,8 +159,7 @@ std::string Util::parseICNumberInput() {
 	std::string input;
 
 	while (true) {
-		std::cout << "|\tIC number\t: ";
-		std::cout << ANSI_COLOR_GOLD;
+		std::cout << "|\t" << ANSI_COLOR_YELLOW << "IC number" << ": " << ANSI_COLOR_GOLD;
 		std::getline(std::cin, input);
 		std::cout << ANSI_COLOR_RESET;
 
@@ -165,8 +193,7 @@ std::string Util::parsePhoneNumberInput() {
 	std::string input;
 
 	while (true) {
-		std::cout << "|\tPhone number (optional)\t: ";
-		std::cout << ANSI_COLOR_GOLD;
+		std::cout << "|\t" << ANSI_COLOR_YELLOW << "Phone number (optional)" << ": " << ANSI_COLOR_GOLD;
 		std::getline(std::cin, input);
 		std::cout << ANSI_COLOR_RESET;
 
@@ -198,7 +225,7 @@ std::string Util::parsePasswordInput(const bool& hide, const bool& isReg) {
 	std::string input;
 
 	while (true) {
-		std::cout << "|\tPassword\t: ";
+		std::cout << "|\t" << ANSI_COLOR_YELLOW << "Password" << ": ";
 
 		// Input style (hide or unhide)
 		if (!hide) {
@@ -250,13 +277,12 @@ std::string Util::parsePasswordInput(const bool& hide, const bool& isReg) {
 }
 
 
-std::string Util::parseTextInput() {
+std::string Util::parseTextInput(const std::string& fieldName) {
 	std::regex pattern("^[a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*$");
 	std::string input;
 
 	do {
-		std::cout << "|\tAction-#: ";
-		std::cout << ANSI_COLOR_GOLD;
+		std::cout << "|\t" << ANSI_COLOR_YELLOW << fieldName << ": " << ANSI_COLOR_GOLD;
 		std::getline(std::cin, input);
 		std::cout << ANSI_COLOR_RESET;
 
@@ -280,21 +306,18 @@ std::string Util::parseTextInput() {
 }
 
 
-std::string Util::parseDateInput(std::string text, const bool& showInstruction, std::string startDate = "") {
+std::string Util::parseDateInput(std::string fieldName, const bool& showInstruction, std::string startDate) {
 	const std::regex datePattern(R"((\d{4})-(\d{2})-(\d{2}))");
 	std::string input;
 
 	if (showInstruction) { std::cout << "|\tIn YYYY-MM-DD format (2001-05-03)\n"; }
 	do {
-		std::cout << "|\t" << text << "\t: ";
-		std::cout << ANSI_COLOR_GOLD;
+		std::cout << "|\t" << ANSI_COLOR_YELLOW << fieldName << ": " << ANSI_COLOR_GOLD;
 		std::getline(std::cin, input);
 		std::cout << ANSI_COLOR_RESET;
 		
 		// Exit
-		if (input == "esc" || input == "ESC") {
-			return __EXIT_CODE__;
-		}
+		if (input == "esc" || input == "ESC") { return __EXIT_CODE__; }
 
 		int day, month, year;
 		if (!std::regex_match(input, datePattern)) {
@@ -309,7 +332,6 @@ std::string Util::parseDateInput(std::string text, const bool& showInstruction, 
 			day = std::stoi(match[3].str());
 		}
 		
-
 		// Basic validation of month and day ranges
 		bool dateIsInvalid = 
 			(month < 1 || month > 12) ||
@@ -324,19 +346,81 @@ std::string Util::parseDateInput(std::string text, const bool& showInstruction, 
 				showNegativeMessage("Invalid date (This year is a leap year)");
 			}
 		} 
-		else if (startDate.empty()) {
+		else if (Util::isDateOverLimit(year, month, day)) {
+			showNegativeMessage("You can only book under 18 months in advance (1\xC2\xBD years)");
+		}
+		else if (startDate.empty()) { // When start date is known (Walk-in takes current date)
 			if (Util::firstDateIsEarlier(input, getCurrentDate())) {
 				showNegativeMessage("Date must not be earlier than today");
 			}
+			else { break; }
 		}
 		else if (Util::firstDateIsEarlier(input, startDate)) {
 			showNegativeMessage("Date must not be earlier than starting date");
+		}
+		else if (!isStartDateValid(input)) {
+			showNegativeMessage("Duration must be at least 2 days 1 night");
 		}
 		else {
 			break;
 		}
 		std::cout << "|\n";
 	} while (true);
+	return input;
+}
+
+
+std::string Util::parseYearInput() {
+	std::string input;
+	while (true) {
+		std::cout << "|\t" << ANSI_COLOR_YELLOW << "Year: " << ANSI_COLOR_GOLD;
+		std::getline(std::cin, input);
+		std::cout << ANSI_COLOR_RESET;
+
+		// Exit
+		if (input == "esc" || input == "ESC") {
+			return __EXIT_CODE__;
+		}
+
+		if (!std::all_of(input.begin(), input.end(), ::isdigit)) {
+			showNegativeMessage("Only numbers are allowed");
+		}
+		else if (std::stoi(input) < 1990) {  // If it's outside range of 1-12 (inclusive)
+			showNegativeMessage("Year is too long ago");
+		}
+		else {
+			break;
+		}
+		std::cout << "|\n";
+	}
+	return input;
+}
+
+
+std::string Util::parseMonthInput() {
+	std::string input;
+	while (true) {
+		std::cout << "|\t" << ANSI_COLOR_YELLOW << "Month: " << ANSI_COLOR_GOLD;
+		std::getline(std::cin, input);
+		std::cout << ANSI_COLOR_RESET;
+
+		// Exit
+		if (input == "esc" || input == "ESC") {
+			return __EXIT_CODE__;
+		}
+
+		// Validation
+		if (!std::all_of(input.begin(), input.end(), ::isdigit)) {
+			showNegativeMessage("Only numbers are allowed");
+		}
+		else if (std::stoi(input) < 1 || std::stoi(input) > 12) {  // If it's outside range of 1-12 (inclusive)
+			showNegativeMessage("Invalid month"); 
+		}
+		else {
+			break;
+		}
+		std::cout << "|\n";
+	}
 	return input;
 }
 
@@ -382,24 +466,6 @@ std::string Util::hashText(const std::string& input) {
 }
 
 
-std::string Util::truncateDecimal(std::string input) {
-	// Find the position of the decimal point
-	size_t decimalPos = input.find('.');
-
-	// If there's no decimal point or it's already at the end, return the input as is
-	if (decimalPos == std::string::npos || decimalPos == input.size() - 1) {
-		return input;
-	}
-
-	// Truncate after two digits following the decimal point
-	size_t truncatePos = decimalPos + 3; // Two digits after the decimal point
-	if (truncatePos < input.size()) {
-		input.erase(truncatePos);
-	}
-	return input;
-}
-
-
 std::string Util::formatCurrencyDecimal(std::string input) {
 	// Find the position of the decimal point
 	std::size_t decimalPos = input.find('.');
@@ -409,8 +475,20 @@ std::string Util::formatCurrencyDecimal(std::string input) {
 		return input;
 	}
 
-	// Otherwise, truncate the string to two decimal places
-	return input.substr(0, decimalPos + 3);
+	// Otherwise, round up the string to two decimal places
+	double roundedValue = std::stod(input);
+	double roundedCeil = std::ceil(roundedValue * 100) / 100; // Round up to two decimal places
+
+	// Convert the rounded value back to a string
+	std::string roundedString = std::to_string(roundedCeil);
+
+	// Truncate if necessary to ensure exactly two decimal places
+	size_t truncatePos = roundedString.find('.');
+	if (truncatePos != std::string::npos && truncatePos + 3 < roundedString.size()) {
+		roundedString.erase(truncatePos + 3);
+	}
+
+	return roundedString;
 }
 
 
@@ -422,6 +500,67 @@ std::vector<std::string> Util::split(const std::string& str, char delimiter) {
 		result.push_back(item);
 	}
 	return result;
+}
+
+
+std::string Util::generateInvoice_AsString(std::vector<std::string>& data, std::vector<std::vector<std::string>>& rooms) {
+	std::ostringstream oss;
+	const int idxRoomNumber = 0;
+	const int idxRoomType = 1;
+	const int idxPricePerNight = 2;
+
+	const int idxBookingID = 0;
+	const int idxCurrentDate = 1;
+	const int idxName = 2;
+	const int idxPhoneNo = 3;
+	const int idxBookingType = 4;
+	const int idxStartDate = 5;
+	const int idxEndDate = 6;
+	const int idxTotalDays = 7;
+	const int idxTotalNights = 8;
+	const int idxNetPrice = 9;
+
+	oss << "=========================================================================\n";
+	oss << "                                   INVOICE\n";
+	oss << "=========================================================================\n";
+	oss << "\n";
+	oss << "   Booking ID   : " << data[idxBookingID] << "                  Date: " << data[idxCurrentDate] << "\n";
+	oss << "\n";
+	oss << "   Name         : " << data[idxName] << "\n";
+	oss << "   Phone Number : " << data[idxPhoneNo] << "\n";
+	oss << "\n";
+	oss << "=========================================================================\n";
+	oss << "\n";
+	oss << "   Booking Information:\n";
+	oss << "   --------------------\n";
+	oss << "\n";
+	for (const auto& roomData : rooms) {
+		oss << "      Room Number     : " << roomData[idxRoomNumber] << "\n";
+		oss << "      Room Name       : " << roomData[idxRoomType] << "\n";
+		oss << "      Price per Night : " << formatCurrencyDecimal(roomData[idxPricePerNight]) << "\n";
+		oss << "\n";
+	}
+	oss << "---------------------------------------------------------------------------\n";
+	oss << "\n";
+	oss << "   [ " << data[idxBookingType] << " ]\n";
+	oss << "   Start Date   : " << data[idxStartDate] << "\n";
+	oss << "   End Date     : " << data[idxEndDate] << "\n";
+	oss << "   Duration     : " << data[idxTotalDays] << " days, " << data[idxTotalNights] << " night(s)" << "\n";
+	oss << "\n";
+	oss << "   Net Price    : RM" << formatCurrencyDecimal(data[idxNetPrice]) << "\n";
+	oss << "\n";
+	oss << "===========================================================================\n";
+	oss << "                            THANK YOU FOR CHOOSING\n";
+	oss << "                                  OUR HOTEL!\n";
+	oss << "===========================================================================\n";
+
+	
+	return oss.str();
+}
+
+
+void Util::generatePDF(const std::string& text, const std::string& filename) {
+	// TODO
 }
 
 
@@ -443,6 +582,52 @@ bool Util::firstDateIsEarlier(const std::string& date1, const std::string& date2
 
 	// Compare time_t values
 	return time1 < time2;
+}
+
+
+bool Util::isDateOverLimit(int year, int month, int day) {
+	// Get the current date
+	std::time_t now = std::time(0);
+	std::tm currentDate;
+	localtime_s(&currentDate, &now);
+
+	// Set the maximum booking window (18 months in advance)
+	currentDate.tm_mon += 18;
+	std::mktime(&currentDate); // Normalize the date in case of overflow
+
+	// Construct the booking date
+	std::tm bookingDate = {};
+	bookingDate.tm_year = year - 1900;
+	bookingDate.tm_mon = month - 1;
+	bookingDate.tm_mday = day;
+
+	// Convert to time_t for comparison
+	std::time_t bookingTime = std::mktime(&bookingDate);
+
+	// Check if booking date is within the allowed window
+	return bookingTime > std::mktime(&currentDate);
+}
+
+
+bool Util::isStartDateValid(const std::string& date) {
+	struct std::tm tm1 = {};
+	struct std::tm tm2 = {};
+
+	// Convert date strings to tm structures
+	std::istringstream ss1(date);
+	std::istringstream ss2(getCurrentDate());
+
+	ss1 >> std::get_time(&tm1, "%Y-%m-%d");
+	ss2 >> std::get_time(&tm2, "%Y-%m-%d");
+
+	// Convert tm structures to time_t
+	std::time_t time1 = std::mktime(&tm1);
+	std::time_t time2 = std::mktime(&tm2);
+
+	double secondsDifference = std::difftime(time1, time2);
+	double dayDifference = std::abs(secondsDifference) / 86400; // 86400 seconds in a day
+
+	return dayDifference >= 1.0;
 }
 
 

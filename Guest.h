@@ -24,11 +24,16 @@ public:
 
 	static bool isICNumberExist(const std::string& ICNumber);
 	static bool isPasswordCorrect(const std::string& username, const std::string& password);
+	static bool isUser(const std::string& ICNumber);
 
 	static void renderRegisterPrompt();
-	static void renderReservationMenu();
-	static void renderBookingHistory(const std::string& GuestUsername);
+	static void renderBookReservationMenu();
+	static void renderCancelReservationMenu();
 	static void renderMainMenu();
+	static void renderBookingHistory();
+	
+	static void viewCancelConfirmation(const std::vector<std::string> roomNumbers, const std::string bookingID);
+	static void viewBookingDetailsOf(const std::string& bookingID);
 
 private:
 	static std::string ICNumber;

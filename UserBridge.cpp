@@ -26,6 +26,7 @@ void UserBridge::prepareMainMenuAccess(const std::string& username) {
 
 				if (db.res->next()) {
 					Guest::setICNumber(db.res->getString("ICNumber"));
+					Guest::setGuestUsername(db.res->getString("GuestUsername"));
 					Guest::setName(db.res->getString("Name"));
 					Guest::setPhoneNo(db.res->getString("PhoneNo"));
 					Guest::setPassword(db.res->getString("Password"));
@@ -43,8 +44,8 @@ void UserBridge::prepareMainMenuAccess(const std::string& username) {
 					Staff::setStaffUsername(db.res->getString("StaffUsername"));
 					Staff::setName(db.res->getString("Name"));
 					Staff::setPhoneNo(db.res->getString("PhoneNo"));
-					Staff::setUserType(db.res->getString("UserType"));
 					Staff::setPassword(db.res->getString("Password"));
+					Staff::setUserType(db.res->getString("UserType"));
 
 					Receptionist::renderMainMenu();
 				}
@@ -65,9 +66,6 @@ void UserBridge::prepareMainMenuAccess(const std::string& username) {
 				}
 			}
 		}
-		else {
-			std::cout << "prepareMainMenu fail sudah";
-		}
 	} catch (const std::exception& e) {
 		std::cerr << "|\tError accessing user: " << e.what() << std::endl;
 	}
@@ -83,9 +81,10 @@ void UserBridge::renderLoginPrompt() {
 
 		Util::showHorizontalLine("double");
 		std::cout << "|\n";
-		std::cout << "|\t" << ANSI_COLOR_YELLOW << "LOGIN\n" << ANSI_COLOR_RESET;
-		Util::showInputCancelInstruction();
 		std::cout << "|\t--------------------------------------------------\n";
+		std::cout << "|\t\t\t" << ANSI_COLOR_YELLOW << "LOG IN\n" << ANSI_COLOR_RESET;
+		std::cout << "|\t--------------------------------------------------\n";
+		Util::showEscInstruction();
 		if (!isGuest || !isStaff) {
 			std::cout << "|\t" << ANSI_COLOR_RED << "{ Username and password does not match }\n" << ANSI_COLOR_RESET;
 		}
@@ -99,7 +98,7 @@ void UserBridge::renderLoginPrompt() {
 		isGuest = Guest::isPasswordCorrect(username, password);
 		isStaff = Staff::isPasswordCorrect(username, password);
 		if (isGuest || isStaff) {
-			Util::showPositiveMessage("Logging in");
+			Util::showPositiveMessage("Logging in",true);
 			Util::showHorizontalLine("double");
 			Util::showRefreshCountdown();
 			UserBridge::prepareMainMenuAccess(username);
@@ -120,10 +119,11 @@ void UserBridge::renderStartMenu() {
 		std::cout << "|\n";
 		Util::showHorizontalLine("double");
 		std::cout << "|\n";
-		std::cout << "|\tWelcome!\n";
+		std::cout << "|\t" << ANSI_COLOR_YELLOW << "WELCOME!\n" << ANSI_COLOR_RESET;
 		std::cout << "|\n";
 		std::cout << "|\tSelect an option:\n";
-		std::cout << "|\t" << (action == 0 ? ANSI_COLOR_GOLD : "") << "> LOGIN <\n" << ANSI_COLOR_RESET;
+		std::cout << "|\t" << (action == 0 ? ANSI_COLOR_GOLD : "") << "> LOG IN <\n" << ANSI_COLOR_RESET;
+		std::cout << "|\t-------------------------------\n";
 		std::cout << "|\t" << (action == 1 ? ANSI_COLOR_GOLD : "") << "> REGISTER AS Guest <\n" << ANSI_COLOR_RESET;
 		std::cout << "|\t" << (action == 2 ? ANSI_COLOR_GOLD : "") << "> REGISTER AS Receptionist <\n" << ANSI_COLOR_RESET;
 		std::cout << "|\t-------------------------------\n";
