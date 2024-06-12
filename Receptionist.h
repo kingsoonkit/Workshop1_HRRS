@@ -18,7 +18,7 @@ private:
 	static void renderBookingHistory();
 	static void renderInvoicePrompt(const std::string& bookingID);
 
-	static void viewRoomDashboard(DBConnection& db);
+	static void viewRoomDashboard();
 	static void viewBookingDetailsOf(const std::string& bookingID);
 };
 

@@ -69,7 +69,8 @@ void Receptionist::renderRegisterPrompt() {
 ////////////////////
 
 
-void Receptionist::viewRoomDashboard(DBConnection& db) {
+void Receptionist::viewRoomDashboard() {
+	DBConnection db;
 	tabulate::Table table;
 
 	try {
@@ -452,14 +453,13 @@ void Receptionist::renderInvoicePrompt(const std::string& bookingID) {
 
 
 void Receptionist::renderDailyFunctionsMenu() {
-	DBConnection db;
 	bool isExiting = false;
 	std::string action;
 
 	do {
 		system("cls");
 		Util::showHorizontalLine("double");
-		viewRoomDashboard(db);
+		viewRoomDashboard();
 		Util::showHorizontalLine("single");
 		std::cout << "|\n";
 		std::cout << "|\t" << ANSI_COLOR_YELLOW << "Main Menu > Daily Functions" << ANSI_COLOR_RESET << Util::writeTodayDate(true, 8);

@@ -390,7 +390,7 @@ void Guest::renderCancelReservationMenu() {
 }
 
 
-void Guest::viewCancelConfirmation(const std::vector<std::string> roomNumbers, const std::string bookingID) {
+void Guest::viewCancelConfirmation(const std::vector<std::string>& roomNumbers, const std::string& bookingID) {
 	int action = 0;
 	bool isExiting = false;
 	do {

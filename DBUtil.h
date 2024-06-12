@@ -20,16 +20,14 @@ public:
 	static bool isBookingIDExist(const std::string& bookingID, const std::string& ICNumber);
 	static bool isBookingReserved(const std::string& bookingID);
 	static bool isBookingCheckedIn(const std::string& bookingID);
-	static bool isReservationOnToday(const std::string& bookingID);
-
+	static bool isBookingIDHere(const std::string bookingID, tabulate::Table& table, const int colIndex);
 	static bool isRoomNumberExist(const std::vector<std::string>& roomNumbers);
 	static bool isRoomAvailable(const std::vector<std::string>& roomNumbers);
-
 	static bool isRoomNumberHere(const std::vector<std::string>& roomNumbers, tabulate::Table& table, const int colIndex);
-	static bool isBookingIDHere(const std::string bookingID, tabulate::Table& table, const int colIndex);
+	static bool isReservationOnToday(const std::string& bookingID);
 
-	static void updateBookingStatuses();
 	static void updateRoomStatuses();
+	static void updateBookingStatuses();
 	static void updateBookingNetPrice(const std::string bookingID);
 
 	static std::vector<std::string> getRoomNumbersByBookingID(const std::string& bookingID);

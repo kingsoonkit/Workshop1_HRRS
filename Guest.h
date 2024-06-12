@@ -42,7 +42,7 @@ private:
 	static void renderBookingHistory();
 	
 	static void viewBookingDetailsOf(const std::string& bookingID);
-	static void viewCancelConfirmation(const std::vector<std::string> roomNumbers, const std::string bookingID);
+	static void viewCancelConfirmation(const std::vector<std::string>& roomNumbers, const std::string& bookingID);
 };
 
 #endif
