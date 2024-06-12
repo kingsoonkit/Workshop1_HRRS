@@ -26,6 +26,7 @@ protected:
 	static std::string phoneNo;
 	static std::string userType;
 	static std::string password;
+
 };
 
 #endif

@@ -74,7 +74,7 @@ bool Guest::isUser(const std::string& ICNumber) {
 		db.QueryResult();
 		if (db.res->rowsCount() == 1) {
 			db.res->next();
-			if (db.res->getString("UserType") != "Non-User") {
+			if (db.res->getString("UserType") != "NoAccount") {
 				return true;
 			}
 		}
@@ -217,7 +217,7 @@ void Guest::renderRegisterPrompt() {
 }
 
 
-void Guest::renderBookReservationMenu() {
+void Guest::renderAddReservationMenu() {
 	DBConnection db;
 	std::string bookingID;
 	bool isExiting = false;
@@ -226,7 +226,7 @@ void Guest::renderBookReservationMenu() {
 		system("cls");
 		Util::showHorizontalLine("double");
 		std::cout << "|\n";
-		std::cout << "|\t" << ANSI_COLOR_YELLOW << "Main Menu > Book Reservation" << ANSI_COLOR_RESET << Util::writeTodayDate(true, 8);
+		std::cout << "|\t" << ANSI_COLOR_YELLOW << "Main Menu > Add Reservation" << ANSI_COLOR_RESET << Util::writeTodayDate(true, 8);
 		std::cout << "|\t----------------------------\n";
 		std::cout << "|\n";
 		Util::showEscInstruction();
@@ -536,9 +536,7 @@ void Guest::viewBookingDetailsOf(const std::string& bookingID) {
 		for (int i = 0; i <= db.res->rowsCount(); i++) {
 			table[i][0].format()
 				.border_left("|\t|")
-				.border_right("\b")  //// TODO: Fix Border
-				.corner_top_left("|\t+")
-				.corner_bottom_left("|\t+");
+				.corner("|\t+");
 		}
 
 		// 3. OUTPUT Table
@@ -584,14 +582,14 @@ void Guest::renderMainMenu() {
 		std::cout << "|\t---------\n";
 		std::cout << "|\n";
 		std::cout << "|\tSelect an option:\n";
-		std::cout << "|\t" << (action == 0 ? ANSI_COLOR_GOLD : "") << "> Book Reservation <\n" << ANSI_COLOR_RESET;
+		std::cout << "|\t" << (action == 0 ? ANSI_COLOR_GOLD : "") << "> Add Reservation <\n" << ANSI_COLOR_RESET;
 		std::cout << "|\t" << (action == 1 ? ANSI_COLOR_GOLD : "") << "> Cancel Room Reservation <\n" << ANSI_COLOR_RESET;
 		std::cout << "|\t" << (action == 2 ? ANSI_COLOR_GOLD : "") << "> Booking History <\n" << ANSI_COLOR_RESET;
 		std::cout << "|\t-------------------------------\n";
 		std::cout << "|\t" << (action == 3 ? ANSI_COLOR_ORANGE : "") << "> LOG OUT <\n" << ANSI_COLOR_RESET;
 		std::cout << "|\n";
 		std::cout << "|\tUse arrow-up key or arrow-down key to select, and then press enter\n";
-		std::cout << "|\tSELECTING: " << ANSI_COLOR_GOLD << (action == 0 ? "[ Book Reservation ]\n" : action == 1 ? "[ Cancel Room Reservation ]\n" : action == 2 ? "[ Booking History ]\n" : ANSI_COLOR_ORANGE "[ LOG OUT ]\n") << ANSI_COLOR_RESET;
+		std::cout << "|\tSELECTING: " << ANSI_COLOR_GOLD << (action == 0 ? "[ Add Reservation ]\n" : action == 1 ? "[ Cancel Room Reservation ]\n" : action == 2 ? "[ Booking History ]\n" : ANSI_COLOR_ORANGE "[ LOG OUT ]\n") << ANSI_COLOR_RESET;
 		std::cout << "|\n";
 		Util::showHorizontalLine("double");
 
@@ -605,7 +603,7 @@ void Guest::renderMainMenu() {
 			break;
 		case 13:  // Enter key code = 13
 			if (action == 0) {
-				renderBookReservationMenu();
+				renderAddReservationMenu();
 			}
 			if (action == 1) {
 				renderCancelReservationMenu();

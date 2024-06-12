@@ -131,9 +131,7 @@ void Receptionist::viewRoomDashboard(DBConnection& db) {
 			for (int i = 0; i <= db.res->rowsCount(); i++) {
 				table[i][0].format()
 					.border_left("|\t|")
-					.border_right("\b")  //// TODO: Fix Border
-					.corner_top_left("|\t+")
-					.corner_bottom_left("|\t+");
+					.corner("|\t+");
 			}
 		}
 	} catch (sql::SQLException& e) {
@@ -261,23 +259,23 @@ void Receptionist::renderCI_Reservation(std::string& bookingID) {
 		std::cout << "|\t" << ANSI_COLOR_YELLOW << "Main Menu > Daily Functions > Check-in (Reservation)" << ANSI_COLOR_RESET << Util::writeTodayDate(true, 5);
 		std::cout << "|\t----------------------------------------------------\n";
 		std::cout << "|\n";
-		std::cout << "|\t" << ANSI_COLOR_YELLOW << "Booking ID: " << ANSI_COLOR_GOLD << data[0] << "\n" << ANSI_COLOR_RESET;
+		std::cout << "|\t" << ANSI_COLOR_GOLD << "Booking ID: " << data[0] << "\n" << ANSI_COLOR_RESET;
 		std::cout << "|\t------------\n";
-		std::cout << "|\t" << ANSI_COLOR_YELLOW << "IC Number    :" << ANSI_COLOR_GOLD << data[1] << "\n" << ANSI_COLOR_RESET;
-		std::cout << "|\t" << ANSI_COLOR_YELLOW << "Name         :" << ANSI_COLOR_GOLD << data[2] << "\n" << ANSI_COLOR_RESET;
-		std::cout << "|\t" << ANSI_COLOR_YELLOW << "Phone Number :" << ANSI_COLOR_GOLD << data[3] << "\n" << ANSI_COLOR_RESET;
+		std::cout << "|\t" << ANSI_COLOR_GOLD << "IC Number    :" << data[1] << "\n" << ANSI_COLOR_RESET;
+		std::cout << "|\t" << ANSI_COLOR_GOLD << "Name         :" << data[2] << "\n" << ANSI_COLOR_RESET;
+		std::cout << "|\t" << ANSI_COLOR_GOLD << "Phone Number :" << data[3] << "\n" << ANSI_COLOR_RESET;
 		std::cout << "|\n";
-		std::cout << "|\t" << ANSI_COLOR_YELLOW << "Start Date   :" << ANSI_COLOR_GOLD << data[4] << "\n" << ANSI_COLOR_RESET;
-		std::cout << "|\t" << ANSI_COLOR_YELLOW << "End Date     :" << ANSI_COLOR_GOLD << data[5] << "\n" << ANSI_COLOR_RESET;
-		std::cout << "|\t" << ANSI_COLOR_YELLOW << "Duration     :" << ANSI_COLOR_GOLD << data[6] << " days, " << data[7] << "nights\n" << ANSI_COLOR_RESET;
+		std::cout << "|\t" << ANSI_COLOR_GOLD << "Start Date   :" << data[4] << "\n" << ANSI_COLOR_RESET;
+		std::cout << "|\t" << ANSI_COLOR_GOLD << "End Date     :" << data[5] << "\n" << ANSI_COLOR_RESET;
+		std::cout << "|\t" << ANSI_COLOR_GOLD << "Duration     :" << data[6] << " days, " << data[7] << "nights\n" << ANSI_COLOR_RESET;
 		std::cout << "|\n";
-		std::cout << "|\t" << ANSI_COLOR_YELLOW << "Checking in to: " << Util::writeRoomList(true, rooms);
+		std::cout << "|\t" << ANSI_COLOR_GOLD << "Checking in to: " << Util::writeRoomList(true, rooms);
 		std::cout << "|\n";
 		std::cout << "|\t------------\n";
 		std::cout << "|\n";
 		std::cout << "|\tConfirm check-in for this reservation?\n";
 		std::cout << "|\t" << (action == 0 ? ANSI_COLOR_GOLD : "") << "> NO <\n" << ANSI_COLOR_RESET;
-		std::cout << "|\t" << (action == 1 ? ANSI_COLOR_GOLD : "") << "> YES <\n" << ANSI_COLOR_RESET;
+		std::cout << "|\t" << (action == 1 ? ANSI_COLOR_ORANGE : "") << "> YES <\n" << ANSI_COLOR_RESET;
 		std::cout << "|\n";
 		std::cout << "|\tUse arrow-up key or arrow-down key to select, and then press enter\n";
 		std::cout << "|\tSELECTING: " << ANSI_COLOR_GOLD << (action == 0 ? "[ NO ]\n" : ANSI_COLOR_ORANGE "[ YES ]\n") << ANSI_COLOR_RESET;
@@ -300,11 +298,9 @@ void Receptionist::renderCI_Reservation(std::string& bookingID) {
 				try {
 					DBConnection db;
 					db.prepareStatement("UPDATE bookingline"
-										" SET BookingStatus = ?"
-										" WHERE BookingStatus = ? AND BookingID = ?");
-					db.stmt->setString(1, __BOOKING_STATUS_CHECKEDIN__);
-					db.stmt->setString(2, __BOOKING_STATUS_RESERVED__);
-					db.stmt->setString(3, bookingID);
+										" SET BookingStatus = 'CheckedIn'"
+										" WHERE BookingStatus = 'Reserved' AND StartDate = CURRENT_DATE AND BookingID = ?");
+					db.stmt->setString(1, bookingID);
 					db.QueryStatement();
 				} catch (sql::SQLException& e) {
 					std::cerr << "|\tSQL Exception: " << e.what() << " (MySQL error code: " << e.getErrorCode() << ", SQLState: " << e.getSQLState() << ")" << std::endl;
@@ -375,10 +371,8 @@ void Receptionist::renderCO(const std::string bookingID) {
 				try {
 					DBConnection db;
 					db.prepareStatement("UPDATE bookingline"
-										" SET BookingStatus = ?"
-										" WHERE BookingStatus = ? AND BookingID = ?");
-					db.stmt->setString(1, __BOOKING_STATUS_CHECKEDOUT__);
-					db.stmt->setString(2, __BOOKING_STATUS_CHECKEDIN__);
+										" SET BookingStatus = 'CheckedOut'"
+										" WHERE BookingStatus = 'CheckedIn' AND BookingID = ?");
 					db.stmt->setString(3, bookingID);
 					db.QueryStatement();
 				} 
@@ -414,7 +408,7 @@ void Receptionist::renderInvoicePrompt(const std::string& bookingID) {
 	std::string invoicePreview_String = Util::generateInvoice_AsString(data, rooms);
 
 	Util::showHorizontalLine("single");
-	std::cout << ANSI_COLOR_YELLOW << "\t Invoice Preview:\n";
+	std::cout << ANSI_COLOR_YELLOW << "\t Invoice Preview:\n" << ANSI_COLOR_RESET;
 	std::cout << "\n";
 	std::cout << "\n";
 	std::cout << "\n";
@@ -537,6 +531,10 @@ void Receptionist::renderDailyFunctionsMenu() {
 				}
 				else if (!DBUtil::isBookingReserved(bookingID)) {
 					Util::showNegativeMessage("This booking is not in reservation");
+					std::cout << "|\n";
+				}
+				else if (!DBUtil::isReservationOnToday(bookingID)) {
+					Util::showNegativeMessage("This reservation does not start today");
 					std::cout << "|\n";
 				}
 				else {
@@ -662,9 +660,7 @@ void Receptionist::viewBookingDetailsOf(const std::string& bookingID) {
 		for (int i = 0; i <= db.res->rowsCount(); i++) {
 			table[i][0].format()
 				.border_left("|\t|")
-				.border_right("\b")  //// TODO: Fix Border
-				.corner_top_left("|\t+")
-				.corner_bottom_left("|\t+");
+				.corner("|\t+");
 		}
 
 		// 3. OUTPUT Table

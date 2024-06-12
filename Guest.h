@@ -27,13 +27,7 @@ public:
 	static bool isUser(const std::string& ICNumber);
 
 	static void renderRegisterPrompt();
-	static void renderBookReservationMenu();
-	static void renderCancelReservationMenu();
 	static void renderMainMenu();
-	static void renderBookingHistory();
-	
-	static void viewCancelConfirmation(const std::vector<std::string> roomNumbers, const std::string bookingID);
-	static void viewBookingDetailsOf(const std::string& bookingID);
 
 private:
 	static std::string ICNumber;
@@ -42,6 +36,13 @@ private:
 	static std::string phoneNo;
 	static std::string password;
 	static std::string userType;
+
+	static void renderAddReservationMenu();
+	static void renderCancelReservationMenu();
+	static void renderBookingHistory();
+	
+	static void viewBookingDetailsOf(const std::string& bookingID);
+	static void viewCancelConfirmation(const std::vector<std::string> roomNumbers, const std::string bookingID);
 };
 
 #endif

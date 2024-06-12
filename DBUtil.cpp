@@ -78,6 +78,24 @@ bool DBUtil::isBookingReserved(const std::string& bookingID) {
 }
 
 
+bool DBUtil::isReservationOnToday(const std::string& bookingID) {
+	try {
+		DBConnection db;
+		db.prepareStatement("SELECT bookingID FROM bookingline"
+							" WHERE StartDate = CURRENT_DATE AND bookingID = ?"
+		);
+		db.stmt->setString(1, bookingID);
+		db.QueryResult();
+		if (db.res->rowsCount() > 0) {
+			return true;
+		}
+	} catch (sql::SQLException& e) {
+		std::cerr << "|\tSQL Exception: " << e.what() << " (MySQL error code: " << e.getErrorCode() << ", SQLState: " << e.getSQLState() << ")" << std::endl;
+	}
+	return false;
+}
+
+
 bool DBUtil::isBookingCheckedIn(const std::string& bookingID) {
 	try {
 		DBConnection db;
@@ -232,7 +250,7 @@ void DBUtil::updateBookingStatuses() {
 	try {
 		DBConnection db;
 		db.prepareStatement("UPDATE bookingline bl"
-							" SET bl.BookingStatus = 'Cancelled'"
+							" SET bl.BookingStatus = 'Cancelled', bl.CancelledDate = bl.StartDate"
 							" WHERE bl.StartDate < CURRENT_DATE AND bl.BookingStatus = 'Reserved'");
 		db.QueryStatement();
 		db.~DBConnection();
@@ -270,7 +288,7 @@ std::vector<std::string> DBUtil::getRoomNumbersByBookingID(const std::string& bo
 						" WHERE bl.BookingID = ?");
 	db.stmt->setString(1, bookingID);
 	db.QueryResult();
-	if (db.res->next()) {
+	while (db.res->next()) {
 		rooms.push_back(db.res->getString("RoomNumber"));
 	}
 	return rooms;
@@ -310,7 +328,7 @@ tabulate::Table DBUtil::getTable_AvailableRoomsFrom(const std::string& startDate
 							" WHERE bl.RoomNumber IS NULL "
 							"    OR bl.BookingStatus = 'Cancelled' "
 							"    OR bl.BookingStatus = 'CheckedOut' "
-							"    OR (bl.BookingStatus = 'Reserved' "
+							"    OR (bl.BookingStatus = 'Reserved' OR bl.BookingStatus = 'CheckedIn'"
 							"        AND ((? < bl.StartDate AND ? < bl.StartDate) "
 							"            OR (? > bl.EndDate AND ? > bl.EndDate)));");
 		db.stmt->setString(1, startDate);
@@ -335,9 +353,7 @@ tabulate::Table DBUtil::getTable_AvailableRoomsFrom(const std::string& startDate
 			for (int i = 0; i <= db.res->rowsCount(); i++) {
 				table[i][0].format()
 					.border_left("|\t|")
-					.border_right("\b")  //// TODO: Fix Border
-					.corner_top_left("|\t+")
-					.corner_bottom_left("|\t+");
+					.corner("|\t+");
 			}
 		}
 	} catch (sql::SQLException& e) {
@@ -387,9 +403,7 @@ tabulate::Table DBUtil::getTable_BookingHistoryByICNumber(const std::string& ICN
 				for (int i = 0; i <= db.res->rowsCount(); i++) {
 					table[i][0].format()
 						.border_left("|\t|")
-						.border_right("\b")  //// TODO: Fix Border
-						.corner_top_left("|\t+")
-						.corner_bottom_left("|\t+");
+						.corner("|\t+");
 				}
 			}
 		}
@@ -425,9 +439,7 @@ tabulate::Table DBUtil::getTable_BookingHistoryByICNumber(const std::string& ICN
 				for (int i = 0; i <= db.res->rowsCount(); i++) {
 					table[i][0].format()
 						.border_left("|\t|")
-						.border_right("\b")  //// TODO: Fix Border
-						.corner_top_left("|\t+")
-						.corner_bottom_left("|\t+");
+						.corner("|\t+");
 				}
 			}
 		}
@@ -496,9 +508,7 @@ tabulate::Table DBUtil::getTable_ActiveReservationsByICNumber(const std::string&
 				for (int i = 0; i <= db.res->rowsCount(); i++) {
 					table[i][0].format()
 						.border_left("|\t|")
-						.border_right("\b")  //// TODO: Fix Border
-						.corner_top_left("|\t+")
-						.corner_bottom_left("|\t+");
+						.corner("|\t+");
 				}
 			}
 		}
@@ -539,14 +549,13 @@ tabulate::Table DBUtil::getTable_MonthlyRoomSales(const std::string& year, const
 				Sales = "RM" + Util::formatCurrencyDecimal(db.res->getString("Sales"));
 				BookingCount = db.res->getString("BookingCount");
 
-				table.add_row({ std::to_string(rankNum), RoomType, Sales , BookingCount });
+				table.add_row({ std::to_string(rankNum), RoomType, Sales , BookingCount});
 			}
 			for (int i = 0; i <= db.res->rowsCount(); i++) {
 				table[i][0].format()
 					.border_left("|\t|")
-					.border_right("\b")  //// TODO: Fix Border
-					.corner_top_left("|\t+")
-					.corner_bottom_left("|\t+");
+					.corner("|\t+");
+					
 			}
 		}
 	} catch (sql::SQLException& e) {
@@ -558,7 +567,6 @@ tabulate::Table DBUtil::getTable_MonthlyRoomSales(const std::string& year, const
 
 void DBUtil::applyMonthlyBookingSales_To(std::vector<std::string>& data, const std::string& year, const std::string& month){
 	DBConnection db;
-	tabulate::Table table;
 	try {
 		db.prepareStatement("SELECT"
 							" COUNT(*) AS TotalBookings,"
@@ -665,17 +673,17 @@ void DBUtil::applyGuestBookingInfo_To(std::vector<std::string>& data, const std:
 		db.stmt->setString(1, bookingID);
 		db.QueryResult();
 
-		if (db.res->rowsCount() == 1) {
-			if (db.res->next()) {
-				data.push_back(db.res->getString("BookingID"));
-				data.push_back(db.res->getString("ICNumber"));
-				data.push_back(db.res->getString("Name"));
-				data.push_back(db.res->getString("PhoneNo"));
-				data.push_back(db.res->getString("StartDate"));
-				data.push_back(db.res->getString("EndDate"));
-				data.push_back(db.res->getString("TotalDays"));
-				data.push_back(db.res->getString("TotalNights"));
-			}
+		std::cout << db.res->rowsCount() << std::endl;
+
+		if (db.res->rowsCount() > 0 && db.res->next()) {
+			data.push_back(db.res->getString("BookingID"));
+			data.push_back(db.res->getString("ICNumber"));
+			data.push_back(db.res->getString("Name"));
+			data.push_back(db.res->getString("PhoneNo"));
+			data.push_back(db.res->getString("StartDate"));
+			data.push_back(db.res->getString("EndDate"));
+			data.push_back(db.res->getString("TotalDays"));
+			data.push_back(db.res->getString("TotalNights"));
 		}
 		else {
 			std::cout << "Something is wrong\n";

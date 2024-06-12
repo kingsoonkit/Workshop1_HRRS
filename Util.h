@@ -23,7 +23,6 @@
 #define __EXIT_CODE__ "EXIT_LOOP_CONFIRM_99"
 
 
-
 class Util {
 public:
 	static void showHorizontalLine(const std::string& lines);
@@ -35,7 +34,6 @@ public:
 	static void showPositiveMessage(const std::string& message, const bool& addMargin = false);
 	static void showPassiveMessage(const std::string& message);
 	static void showNegativeMessage(const std::string& message);
-
 	static void showBookingIDDisplay(const std::string& bookingID);
 	static void showPressAnyKeyToContinue();
 
@@ -55,17 +53,13 @@ public:
 	static std::string getCurrentDate();
 	static std::string hashText(const std::string& input);
 	static std::string formatCurrencyDecimal(std::string input);
+	static std::string generateInvoice_AsString(std::vector<std::string>& data, std::vector<std::vector<std::string>>& rooms);
+
 	static std::vector<std::string> split(const std::string& s, char delimiter);
 
 	static bool isStartDateValid(const std::string& date);
+	static bool isFirstDateEarlier(const std::string& date1, const std::string& date2);
+	static bool isStayDurationUnderLimit(const std::string& date1, const std::string& date2);
 	static bool isDateOverLimit(int year, int month, int day);
-	static bool firstDateIsEarlier(const std::string& date1, const std::string& date2);
-
-
-	static int daysBetweenDates(const std::string& date1, const std::string& date2);
-
-	static std::string generateInvoice_AsString(std::vector<std::string>& data, std::vector<std::vector<std::string>>& rooms);
-	
-	static void generatePDF(const std::string& text, const std::string& filename);
 };
 

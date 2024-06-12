@@ -1,7 +1,8 @@
 #include "Util.h"
 
+/////
+/// Display functions
 
-// UI Related
 void Util::showHorizontalLine(const std::string& lines) {
 	if (lines == "single") {
 		std::cout << "| ----------------------------------------------------------------------------------------------------------------------\n";
@@ -33,31 +34,6 @@ void Util::showEscInstruction() {
 	std::cout << "|\t(Enter \"" << ANSI_COLOR_ORANGE << "ESC" << ANSI_COLOR_RESET << "\" to return to previous page)\n";
 }
 
-std::string Util::writeTodayDate(const bool addNewline, int tabCount = 8) {
-	std::string tab_str;
-	for (int i = 0; i < tabCount; i++) {
-		tab_str += "\t";
-	}
-	return ANSI_COLOR_RESET + tab_str + "Today: " + ANSI_COLOR_YELLOW + Util::getCurrentDate() + (addNewline ? "\n" : "") + ANSI_COLOR_RESET;
-}
-
-std::string Util::writeRoomList(const bool addNewline, std::vector<std::string> rooms) {
-	std::string roomList;
-
-	roomList += ANSI_COLOR_GOLD;
-	for (int i = 0; i < rooms.size(); i++) {
-		roomList += rooms[i];
-		if (i != rooms.size() - 1) {
-			roomList += ", ";
-		}
-	}
-	roomList += ANSI_COLOR_RESET;
-	roomList += (addNewline ? "\n" : "");
-
-	return roomList;
-
-}
-
 void Util::showInvalidAction() {
 	std::cout << "|\t" << ANSI_COLOR_RED << "{ Invalid action }\n" << ANSI_COLOR_RESET;
 }
@@ -87,11 +63,35 @@ void Util::showPassiveMessage(const std::string& message) {
 void Util::showNegativeMessage(const std::string& message) {
 	std::cout << "|\t" << ANSI_COLOR_RED << message << "\n" << ANSI_COLOR_RESET;
 }
-////
 
+std::string Util::writeTodayDate(const bool addNewline, int tabCount = 8) {
+	std::string tab_str;
+	for (int i = 0; i < tabCount; i++) {
+		tab_str += "\t";
+	}
+	return ANSI_COLOR_RESET + tab_str + "Today: " + ANSI_COLOR_YELLOW + Util::getCurrentDate() + (addNewline ? "\n" : "") + ANSI_COLOR_RESET;
+}
 
+std::string Util::writeRoomList(const bool addNewline, std::vector<std::string> rooms) {
+	std::string roomList;
 
-// Input Parsing (includes cin and input validation, hence "parsing" //
+	roomList += ANSI_COLOR_GOLD;
+	for (int i = 0; i < rooms.size(); i++) {
+		roomList += rooms[i];
+		if (i != rooms.size() - 1) {
+			roomList += ", ";
+		}
+	}
+	roomList += ANSI_COLOR_RESET;
+	roomList += (addNewline ? "\n" : "");
+
+	return roomList;
+
+}
+
+/////
+/// Input parsing functions
+
 std::string Util::parseUsernameInput() {
 	std::string input;
 	constexpr int maxLength = 30;
@@ -330,40 +330,44 @@ std::string Util::parseDateInput(std::string fieldName, const bool& showInstruct
 			year = std::stoi(match[1].str());
 			month = std::stoi(match[2].str());
 			day = std::stoi(match[3].str());
-		}
-		
-		// Basic validation of month and day ranges
-		bool dateIsInvalid = 
-			(month < 1 || month > 12) ||
-			(day < 1 || day > 31) ||
-			((month == 4 || month == 6 || month == 9 || month == 11) && day > 30);
-		if (dateIsInvalid) {
-			showNegativeMessage("Invalid date");
-		}
-		else if (month == 2) {  
-			bool isLeapYear = (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
-			if (day > 29 || (day == 29 && !isLeapYear)) {
-				showNegativeMessage("Invalid date (This year is a leap year)");
+
+
+			// Basic validation of month and day ranges
+			bool dateIsInvalid =
+				(month < 1 || month > 12) ||
+				(day < 1 || day > 31) ||
+				((month == 4 || month == 6 || month == 9 || month == 11) && day > 30);
+			if (dateIsInvalid) {
+				showNegativeMessage("Invalid date");
 			}
-		} 
-		else if (Util::isDateOverLimit(year, month, day)) {
-			showNegativeMessage("You can only book under 18 months in advance (1\xC2\xBD years)");
-		}
-		else if (startDate.empty()) { // When start date is known (Walk-in takes current date)
-			if (Util::firstDateIsEarlier(input, getCurrentDate())) {
-				showNegativeMessage("Date must not be earlier than today");
+			else if (month == 2) {
+				bool isLeapYear = (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+				if (day > 29 || (day == 29 && !isLeapYear)) {
+					showNegativeMessage("Invalid date (This year is a leap year)");
+				}
 			}
-			else { break; }
-		}
-		else if (Util::firstDateIsEarlier(input, startDate)) {
-			showNegativeMessage("Date must not be earlier than starting date");
-		}
-		else if (!isStartDateValid(input)) {
-			showNegativeMessage("Duration must be at least 2 days 1 night");
-		}
-		else {
-			break;
-		}
+			else if (Util::isDateOverLimit(year, month, day)) {
+				showNegativeMessage("You can only book under 18 months in advance (1.5 years)");
+			}
+			else if (startDate.empty()) { // When start date is known (Walk-in takes current date)
+				if (Util::isFirstDateEarlier(input, getCurrentDate())) {
+					showNegativeMessage("Date must not be earlier than today");
+				}
+				else { break; }
+			}
+			else if (Util::isFirstDateEarlier(input, startDate)) {
+				showNegativeMessage("Date must not be earlier than starting date");
+			}
+			else if (!isStartDateValid(input)) {
+				showNegativeMessage("Stay duration must be at least 2 days 1 night");
+			}
+			else if (!isStayDurationUnderLimit(input, startDate)) {
+				showNegativeMessage("Stay duration maximum is 14 nights per stay");
+			}
+			else {
+				break;
+			}
+		}		
 		std::cout << "|\n";
 	} while (true);
 	return input;
@@ -425,10 +429,7 @@ std::string Util::parseMonthInput() {
 }
 
 /////
-
-
-
-// Miscellaneous functions
+/// Miscellaneous functions
 
 std::string Util::getCurrentDate() {
 	// Get current time
@@ -492,17 +493,6 @@ std::string Util::formatCurrencyDecimal(std::string input) {
 }
 
 
-std::vector<std::string> Util::split(const std::string& str, char delimiter) {
-	std::vector<std::string> result;
-	std::string item;
-	std::stringstream ss(str);
-	while (std::getline(ss, item, delimiter)) {
-		result.push_back(item);
-	}
-	return result;
-}
-
-
 std::string Util::generateInvoice_AsString(std::vector<std::string>& data, std::vector<std::vector<std::string>>& rooms) {
 	std::ostringstream oss;
 	const int idxRoomNumber = 0;
@@ -520,6 +510,7 @@ std::string Util::generateInvoice_AsString(std::vector<std::string>& data, std::
 	const int idxTotalNights = 8;
 	const int idxNetPrice = 9;
 
+	oss << ANSI_COLOR_GOLD;
 	oss << "=========================================================================\n";
 	oss << "                                   INVOICE\n";
 	oss << "=========================================================================\n";
@@ -553,19 +544,27 @@ std::string Util::generateInvoice_AsString(std::vector<std::string>& data, std::
 	oss << "                            THANK YOU FOR CHOOSING\n";
 	oss << "                                  OUR HOTEL!\n";
 	oss << "===========================================================================\n";
+	oss << ANSI_COLOR_RESET;
 
 	
 	return oss.str();
 }
 
 
-void Util::generatePDF(const std::string& text, const std::string& filename) {
-	// TODO
+std::vector<std::string> Util::split(const std::string& str, char delimiter) {
+	std::vector<std::string> result;
+	std::string item;
+	std::stringstream ss(str);
+	while (std::getline(ss, item, delimiter)) {
+		result.push_back(item);
+	}
+	return result;
 }
 
+/////
+/// Boolean functions
 
-
-bool Util::firstDateIsEarlier(const std::string& date1, const std::string& date2) {
+bool Util::isFirstDateEarlier(const std::string& date1, const std::string& date2) {
 	struct std::tm tm1 = {};
 	struct std::tm tm2 = {};
 
@@ -631,7 +630,7 @@ bool Util::isStartDateValid(const std::string& date) {
 }
 
 
-int Util::daysBetweenDates(const std::string& date1, const std::string& date2) {
+bool Util::isStayDurationUnderLimit(const std::string& date1, const std::string& date2) {
 	struct std::tm tm1 = {};
 	struct std::tm tm2 = {};
 
@@ -642,18 +641,12 @@ int Util::daysBetweenDates(const std::string& date1, const std::string& date2) {
 	ss1 >> std::get_time(&tm1, "%Y-%m-%d");
 	ss2 >> std::get_time(&tm2, "%Y-%m-%d");
 
-	// Ensure that the tm structures are correctly initialized
-	tm1.tm_hour = 0; tm1.tm_min = 0; tm1.tm_sec = 0;
-	tm2.tm_hour = 0; tm2.tm_min = 0; tm2.tm_sec = 0;
-
 	// Convert tm structures to time_t
 	std::time_t time1 = std::mktime(&tm1);
 	std::time_t time2 = std::mktime(&tm2);
 
-	// Calculate the difference in seconds and convert to days
-	double differenceInSeconds = std::difftime(time2, time1);
-	int differenceInDays = std::round(differenceInSeconds / (60 * 60 * 24));
+	double secondsDifference = std::difftime(time1, time2);
+	double dayDifference = std::abs(secondsDifference) / 86400; // 86400 seconds in a day
 
-	return differenceInDays;
+	return dayDifference <= 14.0;
 }
-//////

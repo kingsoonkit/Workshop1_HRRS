@@ -29,7 +29,7 @@ void Manager::renderRoomSalesReport() {
 			if (table.size() > 0) {
 				std::cout << "|\n";
 				std::cout << "|\n";
-				std::cout << "|\t" << ANSI_COLOR_YELLOW << "Top Room Sales of " << ANSI_COLOR_GOLD << year << "-" << month << ":\n" << ANSI_COLOR_RESET;
+				std::cout << "|\t" << ANSI_COLOR_YELLOW << "TOP ROOM SALES of " << ANSI_COLOR_GOLD << year << "-" << month << ":\n" << ANSI_COLOR_RESET;
 				std::cout << table << "\n";
 				std::cout << "|\t Total Booking(s) : " << ANSI_COLOR_GOLD << data[0] << ANSI_COLOR_RESET << "\n";
 				std::cout << "|\t Total Sales      : " << ANSI_COLOR_GOLD << data[1] << ANSI_COLOR_RESET << "\n";

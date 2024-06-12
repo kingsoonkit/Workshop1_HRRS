@@ -8,8 +8,9 @@
 class Manager : Staff {
 public:
 	static void renderMainMenu();
-	static void renderRoomSalesReport();
 
+private:
+	static void renderRoomSalesReport();
 };
 
 #endif
