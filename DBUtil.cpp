@@ -153,11 +153,9 @@ bool DBUtil::isRoomAvailable(const std::vector<std::string>& roomNumbers) {
 		db.prepareStatement("SELECT RoomNumber, RoomStatus FROM Room");
 		db.QueryResult();
 
-		// Iterate through the result set and check each room status
 		for (const std::string& room : roomNumbers) {
 			bool roomFound = false;
 
-			// Reset the result set cursor to the beginning for each room number check
 			db.res->beforeFirst();
 			while (db.res->next()) {
 				if (room == db.res->getString("RoomNumber")) {
@@ -165,11 +163,10 @@ bool DBUtil::isRoomAvailable(const std::vector<std::string>& roomNumbers) {
 					if ("Available" != db.res->getString("RoomStatus")) {
 						return false;
 					}
-					break; // Room found and it's available, no need to continue the inner loop
+					break; 
 				}
 			}
 
-			// If the room was not found in the result set, it is considered unavailable
 			if (!roomFound) {
 				return false;
 			}
@@ -178,11 +175,11 @@ bool DBUtil::isRoomAvailable(const std::vector<std::string>& roomNumbers) {
 	} catch (sql::SQLException& e) {
 		std::cerr << "|\tSQL Exception: " << e.what() << " (MySQL error code: " << e.getErrorCode() << ", SQLState: " << e.getSQLState() << ")" << std::endl;
 	}
-	return false; // Return false if there is an exception
+	return false;
 }
 
 
-bool DBUtil::isRoomNumberHere(const std::vector<std::string>& roomNumbers, tabulate::Table& table, const int colIndex) {
+bool DBUtil::isRoomNumberHere(const std::vector<std::string>& roomNumbers, tabulate::Table& table, const int& colIndex) {
 	for (std::string roomNumber : roomNumbers) {
 		for (int i = 1; i < table.size();i++) {
 			if (!table.row(i).cell(colIndex).get_text().empty() && roomNumber == table.row(i).cell(colIndex).get_text()) {
@@ -195,7 +192,7 @@ bool DBUtil::isRoomNumberHere(const std::vector<std::string>& roomNumbers, tabul
 }
 
 
-bool DBUtil::isBookingIDHere(const std::string bookingID, tabulate::Table& table, const int colIndex) {
+bool DBUtil::isBookingIDHere(const std::string bookingID, tabulate::Table& table, const int& colIndex) {
 	for (int i = 1; i < table.size();i++) {
 		if (!table.row(i).cell(colIndex).get_text().empty() && bookingID == table.row(i).cell(colIndex).get_text()) {
 			return true;
@@ -260,7 +257,7 @@ void DBUtil::updateBookingStatuses() {
 }
 
 
-void DBUtil::updateBookingNetPrice(std::string bookingID) {
+void DBUtil::updateBookingNetPrice(const std::string& bookingID) {
 	try {
 		DBConnection db;
 		db.prepareStatement("UPDATE booking b"
@@ -326,11 +323,11 @@ tabulate::Table DBUtil::getTable_AvailableRoomsFrom(const std::string& startDate
 							" ) bl "
 							" ON r.RoomNumber = bl.RoomNumber "
 							" WHERE bl.RoomNumber IS NULL "
-							"    OR bl.BookingStatus = 'Cancelled' "
-							"    OR bl.BookingStatus = 'CheckedOut' "
-							"    OR (bl.BookingStatus = 'Reserved' OR bl.BookingStatus = 'CheckedIn'"
-							"        AND ((? < bl.StartDate AND ? < bl.StartDate) "
-							"            OR (? > bl.EndDate AND ? > bl.EndDate)));");
+							"   OR bl.BookingStatus IN ('Cancelled', 'CheckedOut') "
+							"   OR (bl.BookingStatus IN ('Reserved', 'CheckedIn') "
+							"       AND (? < bl.StartDate AND ? < bl.StartDate) "
+							"       OR (? > bl.EndDate AND ? > bl.EndDate) "
+							" );");
 		db.stmt->setString(1, startDate);
 		db.stmt->setString(2, endDate);
 		db.stmt->setString(3, startDate);
@@ -595,7 +592,7 @@ void DBUtil::applyMonthlyBookingSales_To(std::vector<std::string>& data, const s
 }
 
 
-void DBUtil::applyFullBookingInfo_To(std::vector<std::string>& data, std::vector<std::vector<std::string>>& rooms, std::string bookingID) {
+void DBUtil::applyFullBookingInfo_To(std::vector<std::string>& data, std::vector<std::vector<std::string>>& rooms, const std::string& bookingID) {
 	DBConnection db;
 	try {
 		db.prepareStatement("SELECT "

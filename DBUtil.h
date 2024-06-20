@@ -20,15 +20,15 @@ public:
 	static bool isBookingIDExist(const std::string& bookingID, const std::string& ICNumber);
 	static bool isBookingReserved(const std::string& bookingID);
 	static bool isBookingCheckedIn(const std::string& bookingID);
-	static bool isBookingIDHere(const std::string bookingID, tabulate::Table& table, const int colIndex);
+	static bool isBookingIDHere(const std::string bookingID, tabulate::Table& table, const int& colIndex);
 	static bool isRoomNumberExist(const std::vector<std::string>& roomNumbers);
 	static bool isRoomAvailable(const std::vector<std::string>& roomNumbers);
-	static bool isRoomNumberHere(const std::vector<std::string>& roomNumbers, tabulate::Table& table, const int colIndex);
+	static bool isRoomNumberHere(const std::vector<std::string>& roomNumbers, tabulate::Table& table, const int& colIndex);
 	static bool isReservationOnToday(const std::string& bookingID);
 
 	static void updateRoomStatuses();
 	static void updateBookingStatuses();
-	static void updateBookingNetPrice(const std::string bookingID);
+	static void updateBookingNetPrice(const std::string& bookingID);
 
 	static std::vector<std::string> getRoomNumbersByBookingID(const std::string& bookingID);
 
@@ -38,7 +38,7 @@ public:
 	static tabulate::Table getTable_MonthlyRoomSales(const std::string& year, const std::string& month);
 	
 	static void applyMonthlyBookingSales_To(std::vector<std::string>& data, const std::string& year, const std::string& month);
-	static void applyFullBookingInfo_To(std::vector<std::string>& data, std::vector<std::vector<std::string>>& rooms, std::string bookingID);
+	static void applyFullBookingInfo_To(std::vector<std::string>& data, std::vector<std::vector<std::string>>& rooms, const std::string& bookingID);
 	static void applyGuestBookingInfo_To(std::vector<std::string>& data, const std::string& bookingID);
 };
 

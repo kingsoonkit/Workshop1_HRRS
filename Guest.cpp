@@ -153,9 +153,7 @@ void Guest::renderRegisterPrompt() {
 				break;
 			}
 		} while (true);
-		if (isExiting) {
-			break;
-		}
+		if (isExiting) { break; }
 		
 		// Parsing IC Number input
 		isExiting = false;

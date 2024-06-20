@@ -346,16 +346,16 @@ std::string Util::parseDateInput(std::string fieldName, const bool& showInstruct
 					showNegativeMessage("Invalid date (This year is a leap year)");
 				}
 			}
-			else if (Util::isDateOverLimit(year, month, day)) {
+			else if (isDateOverLimit(year, month, day)) {
 				showNegativeMessage("You can only book under 18 months in advance (1.5 years)");
 			}
 			else if (startDate.empty()) { // When start date is known (Walk-in takes current date)
-				if (Util::isFirstDateEarlier(input, getCurrentDate())) {
+				if (isFirstDateEarlier(input, getCurrentDate())) {
 					showNegativeMessage("Date must not be earlier than today");
 				}
 				else { break; }
 			}
-			else if (Util::isFirstDateEarlier(input, startDate)) {
+			else if (isFirstDateEarlier(input, startDate)) {
 				showNegativeMessage("Date must not be earlier than starting date");
 			}
 			else if (!isStartDateValid(input)) {
@@ -510,7 +510,6 @@ std::string Util::generateInvoice_AsString(std::vector<std::string>& data, std::
 	const int idxTotalNights = 8;
 	const int idxNetPrice = 9;
 
-	oss << ANSI_COLOR_GOLD;
 	oss << "=========================================================================\n";
 	oss << "                                   INVOICE\n";
 	oss << "=========================================================================\n";
@@ -544,9 +543,7 @@ std::string Util::generateInvoice_AsString(std::vector<std::string>& data, std::
 	oss << "                            THANK YOU FOR CHOOSING\n";
 	oss << "                                  OUR HOTEL!\n";
 	oss << "===========================================================================\n";
-	oss << ANSI_COLOR_RESET;
 
-	
 	return oss.str();
 }
 
