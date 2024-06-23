@@ -410,7 +410,7 @@ void Receptionist::renderInvoicePrompt(const std::string& bookingID) {
 
 	Util::showHorizontalLine("single");
 	std::cout << "|\n";
-	std::cout << "|\n" << ANSI_COLOR_YELLOW << "Invoice Preview :\n" << ANSI_COLOR_RESET;
+	std::cout << "|\t" << ANSI_COLOR_YELLOW << "Invoice Preview :\n" << ANSI_COLOR_RESET;
 	std::cout << "|\t----------------\n";
 	std::cout << "|\n";
 	std::cout << "|\t";
