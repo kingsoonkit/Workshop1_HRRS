@@ -247,8 +247,16 @@ void DBUtil::updateBookingStatuses() {
 	try {
 		DBConnection db;
 		db.prepareStatement("UPDATE bookingline bl"
-							" SET bl.BookingStatus = 'Cancelled', bl.CancelledDate = bl.StartDate"
-							" WHERE bl.StartDate < CURRENT_DATE AND bl.BookingStatus = 'Reserved'");
+							" SET bl.BookingStatus = CASE"
+							"     WHEN bl.StartDate < CURRENT_DATE AND bl.BookingStatus = 'Reserved' THEN 'Cancelled'"
+							"     WHEN bl.EndDate < CURRENT_DATE AND bl.BookingStatus = 'CheckedIn' THEN 'CheckedOut'"
+							" END,"
+							" bl.CancelledDate = CASE"
+							"     WHEN bl.StartDate < CURRENT_DATE AND bl.BookingStatus = 'Reserved' THEN CURRENT_DATE"
+							"     ELSE bl.CancelledDate"
+							" END"
+							" WHERE (bl.StartDate < CURRENT_DATE AND bl.BookingStatus = 'Reserved')"
+							" OR (bl.EndDate < CURRENT_DATE AND bl.BookingStatus = 'CheckedIn');");
 		db.QueryStatement();
 		db.~DBConnection();
 	} catch (sql::SQLException& e) {
